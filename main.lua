@@ -7,21 +7,22 @@ local player = {}
 
 
 function love.load()
+	
 	love.graphics.setBackgroundColor( 255, 255, 255 )
 
-	picture = "man3.png"
+	picture = "manstanding.png"
 	
-	man = love.graphics.newImage("manwalk.png")
+	man = love.graphics.newImage("manwalking1.png")
 
-	x = 50
-	y = 50
-	z = 1
-	p = 1
-	speed = 300
+	player.x = 50
+	player.y = 50
+	player.z = 1
+	player.p = 1
+	player.speed = 300
 
 	-- load animation
-	anims["walking"] = newAnimation(man, 80, 103, .15, 1, 0)
-	anims["standing"] = newAnimation(man, 80, 103, .15, 1, 1)
+	anims["walking"] = newAnimation(man, 80, 103, .175, 1, 0)
+	anims["standing"] = newAnimation(love.graphics.newImage("manstanding.png"), 80, 103, .15, 1, 1)
 	player.current_animation = anims.standing
 end
 
@@ -30,31 +31,38 @@ function love.update(dt)
 	anim:update(dt)
 
 	if love.keyboard.isDown("right") then
-		x = x + (speed * dt)
-		p = 1
-		z = 1
+		player.x = player.x + (player.speed * dt)
+		player.p = 1
+		player.z = 1
 		player.current_animation = anims.walking
 	elseif love.keyboard.isDown("left") then
-		x = x - (speed * dt)
-		p = 1
-		z = -1
+		player.x = player.x - (player.speed * dt)
+		player.p = 1
+		player.z = -1
 		player.current_animation = anims.walking
 	else
 		player.current_animation = anims.standing
 	end
 
 	if love.keyboard.isDown("down") then
-		y = y + (speed * dt)	
+		player.y = player.y + (player.speed * dt)	
 	end
 
 	if love.keyboard.isDown("up") then
-		y = y - (speed * dt)	
+		player.y = player.y - (player.speed * dt)	
+	end
+	if player.y > 200 then
+		player.y = 200
+	end
+
+	if player.y <200 then
+		player.y = player.y +(0.89 * player .speed *dt)
 	end
 
 end
 
 function love.draw()
 	anim = player.current_animation
-	anim:draw(x-z*40,y,angle,z,p)
+	anim:draw(player.x-player.z*40,player.y,angle,player.z,player.p)
 
 end
