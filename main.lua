@@ -7,7 +7,7 @@ local objects = {} -- table to hold all our physical objects
 
 
 function new_player()
-	--let's create a ball
+	
 	objects.player = {}
 	player = objects.player
 	player.body = love.physics.newBody(world, 650/2, 650/2, "dynamic") --place the body in the center of the world and make it dynamic, so it can move around
@@ -40,8 +40,8 @@ function new_player()
 	player_body.body:setFixedRotation(true)
 	--love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
 	--love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
-end
 
+end
 
 function new_room()
 	
@@ -92,7 +92,6 @@ function love.load()
 	-- load animation
 	anims["walking"] = newAnimation(love.graphics.newImage("weaponlessman.png"), 80, 103, .175, 1, 0)
 	anims["standing"] = newAnimation(love.graphics.newImage("weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
-	
 	love.physics.setMeter(64) --the height of a meter our worlds will be 64px
 	world = love.physics.newWorld(0, 9.81 * 64, true) --create a world for the bodies to exist in with horizontal gravity of 0 and vertical gravity of 9.81
 	world:setCallbacks(beginContact, endContact, preSolve, postSolve)
@@ -125,8 +124,7 @@ end
 function love.update(dt)
 	objects.player.touching_ground = false
 	player = objects.player
-	anim = player.current_animation
-	anim:update(dt)
+	player.current_animation:update(dt)
 	world:update(dt) --this puts the world into motion
 
 	--here we are going to create some keyboard events
@@ -160,16 +158,12 @@ end
 function love.draw()
 	player.x = objects.player.body:getX()
 	player.y = objects.player.body:getY()
-
-	
-	anim:draw(player.x-player.z*40,player.y-83,angle,player.z,player.p)
-	
 	for id, obj in pairs(objects) do
 		if obj.show_bbox then
 			love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints()))
 		end
-	anim = player.current_animation
-	anim:draw(player.x-player.z*40,player.y-83,angle,player.z,player.p)
+	player.current_animation:draw(player.x-player.z*40,player.y-83,angle,player.z,player.p)
+
 	end
  	
 end
