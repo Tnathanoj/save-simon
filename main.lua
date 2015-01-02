@@ -5,6 +5,9 @@ require("AnAl")
 local anims = {}
 local objects = {} -- table to hold all our physical objects
 
+local windowWidth = 640
+local windowHeight = 480
+
 
 function new_player()
     --let's create a ball
@@ -66,8 +69,9 @@ end
 function love.load()
     love.graphics.setBackgroundColor( 255, 255, 255 )
 
-    anims["walking"] = newAnimation(love.graphics.newImage("weaponlessman.png"), 80, 103, .175, 1, 0)
-    anims["standing"] = newAnimation(love.graphics.newImage("weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
+    -- load animation
+    anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
+    anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
 
     map = sti.new("assets/level1")
 
@@ -83,7 +87,7 @@ function love.load()
 
     --initial graphics setup
     love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
-    love.window.setMode(640, 480)
+    love.window.setMode(windowWidth, windowHeight)
 end
 
 function beginContact(a, b, coll)
@@ -145,7 +149,7 @@ function love.draw()
     local translateY = 0
 
     -- Draw Range culls unnecessary tiles
-    --map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
+    map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
 
     -- Draw the map and all objects within
     map:draw()
