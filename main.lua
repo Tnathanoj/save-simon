@@ -7,23 +7,38 @@ local objects = {} -- table to hold all our physical objects
 
 local windowWidth = 640
 local windowHeight = 480
-local world = {}
 
 -- A level is made up of many rooms
 local levels = {}
 
 local current_room = {}
 
-function new_player()
+function new_player_bbox()
     --let's create a ball
-    objects.player = {}
-    player = objects.player
-    player.body = love.physics.newBody(world, 650/2, 650/2, "dynamic")
-    --player.shape = love.physics.newRectangleShape(0, 00, 30, 30) -- ball is a rectangle
+    player.body = love.physics.newBody(current_room.world, 650/2, 650/2, "dynamic")
     player.shape = love.physics.newCircleShape(10)
     player.fixture = love.physics.newFixture(player.body, player.shape, 1)
-    --player.fixture:setRestitution(0.091) --let the ball bounce
     player.fixture:setUserData(player)
+    player.body:setFixedRotation(true)
+
+    x = 650/2
+    y = 650/2
+    objects.player_body = {}
+    player_body = objects.player_body
+    player_body.body = love.physics.newBody(current_room.world, x, y - 50, "dynamic")
+    player_body.shape = love.physics.newRectangleShape(0, 0, 20, 55)
+    player_body.fixture = love.physics.newFixture(player_body.body, player_body.shape, 1)
+    player_body.fixture:setUserData(player_body)
+    --player_body.show_bbox = true
+    love.physics.newPrismaticJoint(player.body, player_body.body, x, y - 50, 0, -1, false)
+    player_body.body:setFixedRotation(true)
+    --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
+    --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
+end
+
+function new_player()
+    objects.player = {}
+    player = objects.player
     player.x = 50
     player.y = 50
     player.z = 1
@@ -33,21 +48,14 @@ function new_player()
     --player.show_bbox = true
     player.touching_ground = false
     player.last_jump_time = 0
-    player.body:setFixedRotation(true)
+    player.last_room_change_time = 0
 
-    x = 650/2
-    y = 650/2
-    objects.player_body = {}
-    player_body = objects.player_body
-    player_body.body = love.physics.newBody(world, x, y - 50, "dynamic")
-    player_body.shape = love.physics.newRectangleShape(0, 0, 20, 55)
-    player_body.fixture = love.physics.newFixture(player_body.body, player_body.shape, 1)
-    player_body.fixture:setUserData(player_body)
-    player_body.show_bbox = true
-    love.physics.newPrismaticJoint(player.body, player_body.body, x, y - 50, 0, -1, false)
-    player_body.body:setFixedRotation(true)
-    --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
-    --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
+    new_player_bbox()
+end
+
+function player_change_room()
+    new_player_bbox()
+    objects.player.last_room_change_time = 1 + love.timer.getTime()
 end
 
 function blocks()
@@ -73,9 +81,11 @@ end
 
 function new_room(map_file)
     room = {}
+    room.world = love.physics.newWorld(0, 9.81 * 64, true)
+    room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
     room.map = sti.new(map_file)
     room.map:addCustomLayer("Sprite Layer", 3)
-    room.collision = room.map:initWorldCollision(world)
+    room.collision = room.map:initWorldCollision(room.world)
     return room
 end
 
@@ -88,10 +98,7 @@ function love.load()
 
 
     love.physics.setMeter(64)
-    world = love.physics.newWorld(0, 9.81 * 64, true)
-    world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
-    current_room = new_room("assets/level1")
     current_room = new_room("assets/level1_treasure_room")
     --levels.add({})
     --levels[1].add(new_room("assets/level1"))
@@ -104,7 +111,6 @@ function love.load()
 end
 
 function beginContact(a, b, coll)
-
 end
 
 function endContact(a, b, coll)
@@ -114,9 +120,13 @@ function preSolve(a, b, coll)
 end
 
 function postSolve(a, b, coll, normalimpulse1, tangentimpulse1, normalimpulse2, tangentimpulse2)
-	if a:getUserData() == objects.player or b:getUserData() == objects.player then
-		objects.player.touching_ground = true
-	end
+    if a:getUserData() == objects.player or b:getUserData() == objects.player then
+        objects.player.touching_ground = true
+    end
+end
+
+function distance(x1, y1, x2, y2)
+    return math.sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2)
 end
 
 function update_player(player, dt)
@@ -136,22 +146,28 @@ function update_player(player, dt)
         player.current_animation = anims.standing
     end
 
-    if love.keyboard.isDown("up") and objects.player.touching_ground then
-        if objects.player.last_jump_time < love.timer.getTime() then
-            objects.player.body:applyForce(0,-5000)
+    if love.keyboard.isDown("up") then
+        for _, obj in pairs(current_room.map.layers.Objects.objects) do
+            if obj.type == "door" then
+                d = distance(objects.player.x, objects.player.y, obj.x, obj.y)
+                if d < 20 then
+                    current_room = new_room("assets/level1")
+                    player_change_room(objects.player)
+                    return
+                end
+            end
+        end
+        if objects.player.touching_ground and objects.player.last_jump_time < love.timer.getTime() then
+            objects.player.body:applyForce(0, -5000)
             objects.player.last_jump_time = 1 + love.timer.getTime()
         end
-        --objects.ball.body:setPosition(650/2, 650/2)
-        --objects.ball.body:setLinearVelocity(0, 0)
     end
-
-    --objects.player_body.body:setLinearVelocity(0, -10)
 end
 
 function love.update(dt)
     objects.player.touching_ground = false
 
-    world:update(dt)
+    current_room.world:update(dt)
 
     update_player(objects.player, dt)
 end
@@ -179,6 +195,6 @@ function love.draw()
         end
     end
 
-    player.current_animation:draw(player.x-player.z*40,player.y-83,0,player.z,player.p)
+    player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
 
 end

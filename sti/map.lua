@@ -138,6 +138,7 @@ function Map:initWorldCollision(world)
 		end
 
 		local fixture = framework.newFixture(body, shape)
+                fixture:setUserData(obj)
 		local obj = {
 			shape = shape,
 			fixture = fixture,
