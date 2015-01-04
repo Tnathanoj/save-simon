@@ -7,7 +7,12 @@ local objects = {} -- table to hold all our physical objects
 
 local windowWidth = 640
 local windowHeight = 480
+local world = {}
 
+-- A level is made up of many rooms
+local levels = {}
+
+local current_room = {}
 
 function new_player()
     --let's create a ball
@@ -45,7 +50,7 @@ function new_player()
     --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
 end
 
-function new_room()
+function blocks()
     --let's create a couple blocks to play around with
     objects.block1 = {}
     objects.block1.show_bbox = true
@@ -66,6 +71,14 @@ function new_room()
     objects.block3.fixture = love.physics.newFixture(objects.block3.body, objects.block3.shape, .5)
 end
 
+function new_room(map_file)
+    room = {}
+    room.map = sti.new(map_file)
+    room.map:addCustomLayer("Sprite Layer", 3)
+    room.collision = room.map:initWorldCollision(world)
+    return room
+end
+
 function love.load()
     love.graphics.setBackgroundColor( 255, 255, 255 )
 
@@ -73,17 +86,14 @@ function love.load()
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
 
-    map = sti.new("assets/level1")
 
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 9.81 * 64, true)
     world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
-    collision = map:initWorldCollision(world)
-    map:addCustomLayer("Sprite Layer", 3)
+    current_room = new_room("assets/level1")
 
     new_player()
-    new_room()
 
     --initial graphics setup
     love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
@@ -149,17 +159,13 @@ function love.draw()
     local translateY = 0
 
     -- Draw Range culls unnecessary tiles
-    map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
+    current_room.map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
 
     -- Draw the map and all objects within
-    map:draw()
+    current_room.map:draw()
 
     -- Draw Collision Map (useful for debugging)
-    --love.graphics.setColor(255, 0, 0, 255)
-    --map:drawWorldCollision(collision)
-
-    -- Reset color
-    --love.graphics.setColor(255, 255, 255, 255)
+    --current_room.map:drawWorldCollision(current_room.collision)
 
     for id, obj in pairs(objects) do
         if obj.show_bbox then
@@ -168,4 +174,5 @@ function love.draw()
     end
 
     player.current_animation:draw(player.x-player.z*40,player.y-83,0,player.z,player.p)
+
 end

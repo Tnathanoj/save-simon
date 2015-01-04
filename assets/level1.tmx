@@ -109,7 +109,14 @@
  </tileset>
  <layer name="Tile Layer 1" width="20" height="15">
   <data encoding="base64" compression="zlib">
-   eJzlkDEKgEAQA/MAtVztPP2gWnp+3ggrt9WBms6FIVsNIQZggObMUfmSo/Qp+xn0/Xqh7+o3CX0J/9xvJt1Lx0JWsqHs96XjTjI5UPa7Ozak9Yx/LcfgiP2s8j/J6FbkCTRMDGA=
+   eJwTY2BgkGCgDhCDYmqZpwDF1DSPmu4TY6C++8SpaB7IfYpUNE+BYWSGnxIQ85FpBjcQ8wAxLwMi/ChxoyiSGbDwg7kRZg8PGhsfLY9khgKa2bjYpNDIZlODBgCHvwoI
   </data>
  </layer>
+ <objectgroup name="Objects">
+  <object name="door" type="door" x="160" y="320" width="64" height="80">
+   <properties>
+    <property name="collidable" value="true"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>
