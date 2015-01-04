@@ -92,6 +92,9 @@ function love.load()
     world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
     current_room = new_room("assets/level1")
+    current_room = new_room("assets/level1_treasure_room")
+    --levels.add({})
+    --levels[1].add(new_room("assets/level1"))
 
     new_player()
 
@@ -116,38 +119,41 @@ function postSolve(a, b, coll, normalimpulse1, tangentimpulse1, normalimpulse2, 
 	end
 end
 
+function update_player(player, dt)
+    player.current_animation:update(dt)
+
+    if love.keyboard.isDown("right") then
+        objects.player.body:applyForce(100, 0)
+        player.p = 1
+        player.z = 1
+        player.current_animation = anims.walking
+    elseif love.keyboard.isDown("left") then
+        objects.player.body:applyForce(-100, 0)
+        player.p = 1
+        player.z = -1
+        player.current_animation = anims.walking
+    else
+        player.current_animation = anims.standing
+    end
+
+    if love.keyboard.isDown("up") and objects.player.touching_ground then
+        if objects.player.last_jump_time < love.timer.getTime() then
+            objects.player.body:applyForce(0,-5000)
+            objects.player.last_jump_time = 1 + love.timer.getTime()
+        end
+        --objects.ball.body:setPosition(650/2, 650/2)
+        --objects.ball.body:setLinearVelocity(0, 0)
+    end
+
+    --objects.player_body.body:setLinearVelocity(0, -10)
+end
+
 function love.update(dt)
-	objects.player.touching_ground = false
-	player = objects.player
-	player.current_animation:update(dt)
-	world:update(dt) --this puts the world into motion
+    objects.player.touching_ground = false
 
-	--here we are going to create some keyboard events
-	if love.keyboard.isDown("right") then
-		objects.player.body:applyForce(100, 0)
-		player.p = 1
-		player.z = 1
-		player.current_animation = anims.walking
-	elseif love.keyboard.isDown("left") then
-		objects.player.body:applyForce(-100, 0)
-		player.p = 1
-		player.z = -1
-		player.current_animation = anims.walking
-	else
-		player.current_animation = anims.standing
+    world:update(dt)
 
-	end
-	if love.keyboard.isDown("up") and objects.player.touching_ground then
-		if objects.player.last_jump_time < love.timer.getTime() then
-			objects.player.body:applyForce(0,-5000)
-			objects.player.last_jump_time = 1 + love.timer.getTime()
-		end
-		--objects.ball.body:setPosition(650/2, 650/2)
-		--objects.ball.body:setLinearVelocity(0, 0)
-	end
-
-	--objects.player_body.body:setLinearVelocity(0, -10)
-
+    update_player(objects.player, dt)
 end
 
 function love.draw()
