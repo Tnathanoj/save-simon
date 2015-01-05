@@ -142,6 +142,7 @@ function Map:initWorldCollision(world)
 			shape = shape,
 			fixture = fixture,
 		}
+                fixture:setUserData(obj)
 
 		table.insert(collision, obj)
 	end
