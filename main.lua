@@ -7,7 +7,12 @@ local objects = {} -- table to hold all our physical objects
 
 local windowWidth = 640
 local windowHeight = 480
+local world = {}
 
+-- A level is made up of many rooms
+local levels = {}
+
+local current_room = {}
 
 function new_player()
     --let's create a ball
@@ -45,7 +50,7 @@ function new_player()
     --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
 end
 
-function new_room()
+function blocks()
     --let's create a couple blocks to play around with
     objects.block1 = {}
     objects.block1.show_bbox = true
@@ -66,6 +71,14 @@ function new_room()
     objects.block3.fixture = love.physics.newFixture(objects.block3.body, objects.block3.shape, .5)
 end
 
+function new_room(map_file)
+    room = {}
+    room.map = sti.new(map_file)
+    room.map:addCustomLayer("Sprite Layer", 3)
+    room.collision = room.map:initWorldCollision(world)
+    return room
+end
+
 function love.load()
     love.graphics.setBackgroundColor( 255, 255, 255 )
 
@@ -73,17 +86,17 @@ function love.load()
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
 
-    map = sti.new("assets/level1")
 
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 9.81 * 64, true)
     world:setCallbacks(beginContact, endContact, preSolve, postSolve)
 
-    collision = map:initWorldCollision(world)
-    map:addCustomLayer("Sprite Layer", 3)
+    current_room = new_room("assets/level1")
+    current_room = new_room("assets/level1_treasure_room")
+    --levels.add({})
+    --levels[1].add(new_room("assets/level1"))
 
     new_player()
-    new_room()
 
     --initial graphics setup
     love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
@@ -106,38 +119,41 @@ function postSolve(a, b, coll, normalimpulse1, tangentimpulse1, normalimpulse2, 
 	end
 end
 
+function update_player(player, dt)
+    player.current_animation:update(dt)
+
+    if love.keyboard.isDown("right") then
+        objects.player.body:applyForce(100, 0)
+        player.p = 1
+        player.z = 1
+        player.current_animation = anims.walking
+    elseif love.keyboard.isDown("left") then
+        objects.player.body:applyForce(-100, 0)
+        player.p = 1
+        player.z = -1
+        player.current_animation = anims.walking
+    else
+        player.current_animation = anims.standing
+    end
+
+    if love.keyboard.isDown("up") and objects.player.touching_ground then
+        if objects.player.last_jump_time < love.timer.getTime() then
+            objects.player.body:applyForce(0,-5000)
+            objects.player.last_jump_time = 1 + love.timer.getTime()
+        end
+        --objects.ball.body:setPosition(650/2, 650/2)
+        --objects.ball.body:setLinearVelocity(0, 0)
+    end
+
+    --objects.player_body.body:setLinearVelocity(0, -10)
+end
+
 function love.update(dt)
-	objects.player.touching_ground = false
-	player = objects.player
-	player.current_animation:update(dt)
-	world:update(dt) --this puts the world into motion
+    objects.player.touching_ground = false
 
-	--here we are going to create some keyboard events
-	if love.keyboard.isDown("right") then
-		objects.player.body:applyForce(100, 0)
-		player.p = 1
-		player.z = 1
-		player.current_animation = anims.walking
-	elseif love.keyboard.isDown("left") then
-		objects.player.body:applyForce(-100, 0)
-		player.p = 1
-		player.z = -1
-		player.current_animation = anims.walking
-	else
-		player.current_animation = anims.standing
+    world:update(dt)
 
-	end
-	if love.keyboard.isDown("up") and objects.player.touching_ground then
-		if objects.player.last_jump_time < love.timer.getTime() then
-			objects.player.body:applyForce(0,-5000)
-			objects.player.last_jump_time = 1 + love.timer.getTime()
-		end
-		--objects.ball.body:setPosition(650/2, 650/2)
-		--objects.ball.body:setLinearVelocity(0, 0)
-	end
-
-	--objects.player_body.body:setLinearVelocity(0, -10)
-
+    update_player(objects.player, dt)
 end
 
 function love.draw()
@@ -149,17 +165,13 @@ function love.draw()
     local translateY = 0
 
     -- Draw Range culls unnecessary tiles
-    map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
+    current_room.map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
 
     -- Draw the map and all objects within
-    map:draw()
+    current_room.map:draw()
 
     -- Draw Collision Map (useful for debugging)
-    --love.graphics.setColor(255, 0, 0, 255)
-    --map:drawWorldCollision(collision)
-
-    -- Reset color
-    --love.graphics.setColor(255, 255, 255, 255)
+    --current_room.map:drawWorldCollision(current_room.collision)
 
     for id, obj in pairs(objects) do
         if obj.show_bbox then
@@ -168,4 +180,5 @@ function love.draw()
     end
 
     player.current_animation:draw(player.x-player.z*40,player.y-83,0,player.z,player.p)
+
 end
