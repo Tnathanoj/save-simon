@@ -1,3 +1,4 @@
+require('camera')
 
 local sti = require "sti"
 require("AnAl")
@@ -214,18 +215,18 @@ function love.update(dt)
     current_room.world:update(dt)
 
     update_player(objects.player, dt)
+
+    camera:setPosition(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
 end
 
 function love.draw()
+    camera:set()
     player.x = objects.player.body:getX()
     player.y = objects.player.body:getY()
 	
     -- Translation would normally be based on a player's x/y
-    local translateX = 0
-    local translateY = 0
-
-    -- Draw Range culls unnecessary tiles
-    current_room.map:setDrawRange(translateX, translateY, windowWidth, windowHeight)
+    local translateX = player.x
+    local translateY = player.y
 
     -- Draw the map and all objects within
     current_room.map:draw()
@@ -241,4 +242,5 @@ function love.draw()
 
     player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
 
+    camera:unset()
 end
