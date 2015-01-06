@@ -1,7 +1,7 @@
-require('camera')
-
-local sti = require "sti"
 require("AnAl")
+require('camera')
+local vector = require 'vector'
+local sti = require 'sti'
 
 local anims = {}
 local objects = {} -- table to hold all our physical objects
@@ -216,7 +216,13 @@ function love.update(dt)
 
     update_player(objects.player, dt)
 
-    camera:setPosition(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
+    cam_org = vector.new(camera._x, camera._y)
+    ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
+    sub = ent_org - cam_org
+    sub:normalize_inplace()
+    dist = ent_org:dist(cam_org)
+
+    camera:move(sub.x * dist * dt * 2, sub.y * dist * dt * 2)
 end
 
 function love.draw()
