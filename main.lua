@@ -1,5 +1,7 @@
-require("AnAl")
-require('camera')
+require "postshader"
+require "light"
+require "AnAl"
+require 'camera'
 local vector = require 'vector'
 local sti = require 'sti'
 
@@ -21,6 +23,8 @@ function new_player_bbox(player)
     player.fixture = love.physics.newFixture(player.body, player.shape, 1)
     player.fixture:setUserData(player)
     player.body:setFixedRotation(true)
+    player.shadow_rect = current_room.lightWorld.newImage(love.graphics.newImage("assets/gfx/manstanding.png"), player.x, player.y, 90, 180)
+    player.shadow_rect.setShadowType('image')
 
     x = player.x
     y = player.y
@@ -89,6 +93,22 @@ function new_room(map_file)
     room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
     --room.map:addCustomLayer("Sprite Layer", 3)
     room.collision = room.map:initWorldCollision(room.world)
+
+    -- create light world
+    room.lightWorld = love.light.newWorld()
+    room.lightWorld.setAmbientColor(15, 15, 31) -- optional
+
+    -- create light (x, y, red, green, blue, range)
+    lightMouse = room.lightWorld.newLight(windowWidth / 2, windowHeight / 2, 255, 127, 63, 300)
+    lightMouse.setGlowStrength(0.3) -- optional
+
+    for _, obj in ipairs(room.collision) do
+        room.lightWorld.newPolygon(room.collision.body:getWorldPoints(obj.shape:getPoints()))
+    end
+
+    -- create shadow bodys
+    --circleTest = lightWorld.newCircle(256, 256, 32) -- (x, y, radius)
+    --rectangleTest = lightWorld.newRectangle(512, 512, 64, 64) -- (x, y, width, height)
     return room
 end
 
@@ -226,16 +246,24 @@ function love.update(dt)
 end
 
 function love.draw()
-    camera:set()
     player.x = objects.player.body:getX()
     player.y = objects.player.body:getY()
-	
-    -- Translation would normally be based on a player's x/y
-    local translateX = player.x
-    local translateY = player.y
+    player.shadow_rect.setPosition(objects.player.body:getX(), player.y)
+
+    -- update lightmap (doesn't need deltatime)
+    current_room.lightWorld.update()
+
+    --camera:set()
+
+    -- draw background
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     -- Draw the map and all objects within
     current_room.map:draw()
+
+    -- draw lightmap shadows
+    current_room.lightWorld.drawShadow()
 
     -- Draw Collision Map (useful for debugging)
     --current_room.map:drawWorldCollision(current_room.collision)
@@ -248,5 +276,8 @@ function love.draw()
 
     player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
 
-    camera:unset()
+    -- draw lightmap shine
+    current_room.lightWorld.drawShine()
+
+    --camera:unset()
 end
