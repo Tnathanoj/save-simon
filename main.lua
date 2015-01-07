@@ -82,6 +82,9 @@ function love.load()
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
+    anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
+    monster = love.graphics.newImage("assets/gfx/monster.png")
+    door = love.graphics.newImage("assets/gfx/door.png")
 
     love.physics.setMeter(64)
 
@@ -98,27 +101,21 @@ function love.load()
     love.window.setMode(windowWidth, windowHeight)
 
     local spriteLayer = current_room.map.layers["Objects"]
-    spriteLayer.sprites = {
-        monster = {
-            image = love.graphics.newImage("assets/gfx/monster.png"),
-            x = 64,
-            y = 64,
-            r = 0,
-        }
-    }
+
 
     function spriteLayer:update(dt)
-        for _, sprite in pairs(self.sprites) do
-            sprite.r = sprite.r + math.rad(90 * dt)
+        for _, obj in pairs(self.objects) do
+
         end
     end
 
     function spriteLayer:draw()
-        for _, sprite in pairs(self.sprites) do
-            local x = math.floor(sprite.x)
-            local y = math.floor(sprite.y)
-            local r = sprite.r
-            love.graphics.draw(sprite.image, x, y, r)
+        for _, obj in pairs(self.objects) do
+            if obj.type == 'monster' then
+                love.graphics.draw(monster, obj.x, obj.y)
+            elseif obj.type == 'door' then
+                love.graphics.draw(door, obj.x, obj.y)
+            end
         end
     end
 
@@ -156,6 +153,8 @@ function update_player(player, dt)
         player.p = 1
         player.z = -1
         player.current_animation = anims.walking
+    elseif love.keyboard.isDown("z") then
+        player.current_animation = anims.attacking
     else
         player.current_animation = anims.standing
     end
