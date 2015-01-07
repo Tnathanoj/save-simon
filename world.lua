@@ -4,6 +4,18 @@ local sti = require 'sti'
 local windowWidth = 640
 local windowHeight = 480
 
+-- @return item from list that has a key with the same value
+function item_with_key_value(tbl, key, val)
+    for _, i in pairs(tbl) do
+        for k, v in pairs(i) do
+            if k == key and v == val then
+                return i
+            end
+        end
+    end
+    return nil
+end
+
 function new_room(map_file)
     local room = {}
     room.map = sti.new(map_file)
@@ -78,6 +90,33 @@ function new_room(map_file)
                 end
             end
 	end
+    end
+
+    local spriteLayer = room.map.layers["Objects"]
+
+    for k, obj in ipairs(room.map.layers.Objects.objects) do
+        if obj.type == 'monster' then
+            obj.hp = 100
+            obj.img = love.graphics.newImage("assets/gfx/monster.png")
+        elseif obj.type == 'door' then
+            obj.img = love.graphics.newImage("assets/gfx/door.png")
+        end
+    end
+
+    function spriteLayer:update(dt)
+        for _, obj in pairs(self.objects) do
+
+        end
+    end
+
+    function spriteLayer:draw()
+        for _, obj in pairs(self.objects) do
+            if obj.type == 'monster' then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            elseif obj.type == 'door' then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            end
+        end
     end
 
     return room
