@@ -96,6 +96,32 @@ function love.load()
     --love.graphics.setBackgroundColor(127, 127, 127)
     --love.graphics.setBackgroundColor(255, 255, 255)
     love.window.setMode(windowWidth, windowHeight)
+
+    local spriteLayer = current_room.map.layers["Objects"]
+    spriteLayer.sprites = {
+        monster = {
+            image = love.graphics.newImage("assets/gfx/monster.png"),
+            x = 64,
+            y = 64,
+            r = 0,
+        }
+    }
+
+    function spriteLayer:update(dt)
+        for _, sprite in pairs(self.sprites) do
+            sprite.r = sprite.r + math.rad(90 * dt)
+        end
+    end
+
+    function spriteLayer:draw()
+        for _, sprite in pairs(self.sprites) do
+            local x = math.floor(sprite.x)
+            local y = math.floor(sprite.y)
+            local r = sprite.r
+            love.graphics.draw(sprite.image, x, y, r)
+        end
+    end
+
 end
 
 function beginContact(a, b, coll)
@@ -169,6 +195,7 @@ end
 function love.update(dt)
     objects.player.touching_ground = false
     current_room.world:update(dt)
+    current_room.map:update(dt)
 
     lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
