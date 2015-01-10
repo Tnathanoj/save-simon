@@ -1236,6 +1236,33 @@ function love.light.newBody(p, type, ...)
 			o.normalMesh = nil
 		end
 	end
+
+	o.setNormalMap2 = function(normal, x, y, width, height)
+		if normal then
+			o.normal = normal
+			--o.normal:setWrap("repeat", "repeat")
+			o.normalWidth = width or o.normal:getWidth()
+			o.normalHeight = height or o.normal:getHeight()
+			o.nx = o.normalWidth * 0.5
+			o.ny = o.normalHeight * 0.5
+			o.normalVert = {
+--				{x * width, y * height, 0.0, 0.0},
+--				{(x + 1) * width, y * height, o.normalWidth / o.normal:getWidth(), 0.0},
+--				{(x + 1) * width, (y + 1) * height, o.normalWidth / o.normal:getWidth(), o.normalHeight / o.normal:getHeight()},
+--				{x * width, (y + 1) * height, 0.0, o.normalHeight / o.normal:getHeight()}
+				{0.0, 0.0, ((0 + x) * o.normalWidth) / o.normal:getWidth(), ((0 + y) * o.normalHeight) / o.normal:getHeight()},
+				{o.normalWidth, 0.0, ((1 + x) * o.normalWidth) / o.normal:getWidth(), ((0 + y) * o.normalHeight) / o.normal:getHeight()},
+				{o.normalWidth, o.normalHeight, ((1 + x) * o.normalWidth) / o.normal:getWidth(), ((1 + y) * o.normalHeight) / o.normal:getHeight()},
+				{0.0, o.normalHeight, ((0 + x) * o.normalWidth) / o.normal:getWidth(), ((1 + y) * o.normalHeight) / o.normal:getHeight()}
+			}
+			o.normalMesh = love.graphics.newMesh(o.normalVert, o.normal, "fan")
+
+			p.isPixelShadows = true
+		else
+			o.normalMesh = nil
+		end
+	end
+
 	-- set height map
 	o.setHeightMap = function(heightMap, strength)
 		o.setNormalMap(HeightMapToNormalMap(heightMap, strength))
