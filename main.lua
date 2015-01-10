@@ -193,7 +193,7 @@ function update_player(player, dt)
             if obj.type == "door" then
                 x,y = objects.player.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
-                if d < 20 then
+                if d < 20 and objects.player.last_room_change_time < love.timer.getTime() then
                     current_room = obj.target_door.room
                     player.x = obj.target_door.x
                     player.y = obj.target_door.y
