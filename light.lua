@@ -81,9 +81,9 @@ function love.light.newWorld()
 	o.reflectionStrength = 16.0
 	o.reflectionVisibility = 1.0
 	o.changed = true
-	o.blur = 2.0
+	o.blur = nil
 	o.optionShadows = true
-	o.optionPixelShadows = true
+	o.optionPixelShadows = false
 	o.optionGlow = true
 	o.optionRefraction = true
 	o.optionReflection = true
@@ -439,6 +439,7 @@ function love.light.newWorld()
 				love.graphics.setBlendMode("alpha")
 			else
 				love.graphics.setBlendMode("multiplicative")
+				love.graphics.setBlendMode("alpha")
 				love.graphics.setShader()
 				love.graphics.draw(o.shadow, LOVE_LIGHT_TRANSLATE_X, LOVE_LIGHT_TRANSLATE_Y)
 				love.graphics.setBlendMode("alpha")
