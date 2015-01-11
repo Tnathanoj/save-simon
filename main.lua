@@ -64,24 +64,15 @@ function player_change_room(player)
     objects.player.last_room_change_time = 1 + love.timer.getTime()
 end
 
--- @return item from list that has a key with the same value
-function item_with_key_value(tbl, key, val)
-    for _, i in pairs(tbl) do
-        for k, v in pairs(i) do
-            if k == key and v == val then
-                return i
-            end
-        end
-    end
-    return nil
-end
-
 function love.load()
     normal = love.graphics.newImage("assets/gfx/normal.png")
 
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
+    anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
+    monster = love.graphics.newImage("assets/gfx/monster.png")
+    door = love.graphics.newImage("assets/gfx/door.png")
 
     love.physics.setMeter(64)
 
@@ -96,6 +87,7 @@ function love.load()
     --love.graphics.setBackgroundColor(127, 127, 127)
     --love.graphics.setBackgroundColor(255, 255, 255)
     love.window.setMode(windowWidth, windowHeight)
+
 end
 
 function beginContact(a, b, coll)
@@ -134,6 +126,23 @@ function update_player(player, dt)
         player.current_animation = anims.standing
     end
 
+    if love.keyboard.isDown("z") then
+        player.current_animation = anims.attacking
+        for k, obj in pairs(current_room.map.layers.Objects.objects) do
+            if obj.type == "monster" then
+                x,y = objects.player.body:getWorldCenter()
+                d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
+                if d < 40 then
+                    obj.hp = obj.hp - 1000
+                    if obj.hp < 0 then
+                        current_room.map.layers.Objects.objects[k] = nil
+                    end
+                end
+            end
+        end
+    end
+
+
     if love.keyboard.isDown("up") then
         for _, obj in pairs(current_room.map.layers.Objects.objects) do
             if obj.type == "door" then
@@ -169,6 +178,7 @@ end
 function love.update(dt)
     objects.player.touching_ground = false
     current_room.world:update(dt)
+    current_room.map:update(dt)
 
     lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
@@ -190,6 +200,8 @@ function love.draw()
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         --current_room.map:drawWorldCollision(current_room.collision)
         current_room.map.layers['Tile Layer 1']:draw()
+        current_room.map.layers['Objects']:draw()
+        --current_room.map:draw()
     end)
     player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
     love.graphics.pop()
