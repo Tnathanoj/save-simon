@@ -6,10 +6,10 @@ local windowHeight = 480
 
 -- @return item from list that has a key with the same value
 function item_with_key_value(tbl, key, val)
-    for _, i in pairs(tbl) do
+    for idx, i in pairs(tbl) do
         for k, v in pairs(i) do
             if k == key and v == val then
-                return i
+                return i, idx
             end
         end
     end
@@ -18,6 +18,7 @@ end
 
 function new_room(map_file)
     local room = {}
+    room.path = map_file
     room.map = sti.new(map_file)
     room.world = love.physics.newWorld(0, 9.81 * 64, true)
     room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
@@ -30,7 +31,7 @@ function new_room(map_file)
     room.lightWorld:setReflectionVisibility(0.75)
 
     if room.map.layers['NormalMap'] then
-        lightMouse = room.lightWorld:newLight(windowWidth / 2, windowHeight / 2, 255, 255, 255)--, 300)
+        --lightMouse = room.lightWorld:newLight(windowWidth / 2, windowHeight / 2, 255, 255, 255)--, 300)
 
         local layer = room.map.layers['NormalMap']
 	local w			= love.graphics.getWidth()
@@ -69,7 +70,7 @@ function new_room(map_file)
                     if tile.r	> 0 then tx = tx + tw end
                     if tile.r	< 0 then ty = ty + th end
 
-                    local ts_tile = item_with_key_value(ts.tiles, 'id', tile.id)
+                    local ts_tile, _ = item_with_key_value(ts.tiles, 'id', tile.id)
                     if ts_tile and ts_tile.objectGroup then
                         for _, obj in pairs(ts_tile.objectGroup.objects) do
                             for poly in allPolygons(obj, {x=tx-32, y=ty-32}) do
@@ -100,6 +101,8 @@ function new_room(map_file)
             obj.img = love.graphics.newImage("assets/gfx/monster.png")
         elseif obj.type == 'door' then
             obj.img = love.graphics.newImage("assets/gfx/door.png")
+        elseif obj.type == 'light' then
+            obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
         end
     end
 
@@ -122,28 +125,49 @@ function new_room(map_file)
     return room
 end
 
-function room_get_unused_door(room)
+function room_unused_doors(room)
+    return coroutine.wrap(function()
     for _, obj in pairs(room.map.layers.Objects.objects) do
         if obj.type == "door" and not obj.used then
             obj.room = room
             obj.used = true
-            return obj
+            coroutine.yield(obj)
         end
     end
+    end)
 end
 
 function connect_doors(levels)
     for _, level in pairs(levels) do
         local doors = {}
+
+        -- get the doors from start first
+        for door in room_unused_doors(level.rooms["start"]) do
+            table.insert(doors, door)
+        end
+
+        -- get the rest of the doors
         for _, room in pairs(level.rooms) do
-            local door = room_get_unused_door(room)
-            if door and 0 < #doors then
-                local door2 = table.remove(doors, 1)
-                door2.target_door = door
-                door.target_door = door2
-            else
+            for door in room_unused_doors(room) do
                 table.insert(doors, door)
             end
+        end
+
+        -- TODO: this algorithm sucks, needs some love
+        local door = table.remove(doors, 1)
+        while 1 < #doors do
+            for i, door2 in ipairs(doors) do
+                if door2.room == door.room then
+
+                else
+                    --print("connected " .. door.room.path .. " to " .. door2.room.path)
+                    table.remove(doors, i)
+                    door2.target_door = door
+                    door.target_door = door2
+                    break
+                end
+            end
+            door = table.remove(doors, 1)
         end
     end
 end

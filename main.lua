@@ -86,7 +86,7 @@ function love.load()
     --love.graphics.setBackgroundColor(50, 50, 50)
     --love.graphics.setBackgroundColor(127, 127, 127)
     --love.graphics.setBackgroundColor(255, 255, 255)
-    love.window.setMode(windowWidth, windowHeight)
+    love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
 
 end
 
@@ -180,7 +180,7 @@ function love.update(dt)
     current_room.world:update(dt)
     current_room.map:update(dt)
 
-    lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
+    --lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
 
     update_player(objects.player, dt)
@@ -197,7 +197,7 @@ function love.draw()
     love.graphics.translate(-camera._x, -camera._y)
     current_room.lightWorld:draw(function(l, t, w, h, s)
         love.graphics.setColor(255, 255, 255)
-        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth() * 2, love.graphics.getHeight())
         --current_room.map:drawWorldCollision(current_room.collision)
         current_room.map.layers['Tile Layer 1']:draw()
         current_room.map.layers['Objects']:draw()
