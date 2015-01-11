@@ -4,6 +4,17 @@ local sti = require 'sti'
 local windowWidth = 640
 local windowHeight = 480
 
+-- http://coronalabs.com/blog/2014/09/30/tutorial-how-to-shuffle-table-items/
+local function shuffleTable(t)
+    local rand = math.random 
+    local iterations = #t
+    local j
+    for i = iterations, 2, -1 do
+        j = rand(i)
+        t[i], t[j] = t[j], t[i]
+    end
+end
+
 -- @return item from list that has a key with the same value
 function item_with_key_value(tbl, key, val)
     for idx, i in pairs(tbl) do
@@ -152,6 +163,9 @@ function connect_doors(levels)
                 table.insert(doors, door)
             end
         end
+
+        -- here's your procedural generation
+        shuffleTable(doors)
 
         -- TODO: this algorithm sucks, needs some love
         local door = table.remove(doors, 1)

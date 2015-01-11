@@ -71,8 +71,6 @@ function love.load()
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
     anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
-    monster = love.graphics.newImage("assets/gfx/monster.png")
-    door = love.graphics.newImage("assets/gfx/door.png")
 
     love.physics.setMeter(64)
 
@@ -83,11 +81,8 @@ function love.load()
     new_player()
 
     love.graphics.setBackgroundColor(0, 0, 0)
-    --love.graphics.setBackgroundColor(50, 50, 50)
-    --love.graphics.setBackgroundColor(127, 127, 127)
-    --love.graphics.setBackgroundColor(255, 255, 255)
-    love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
-
+    --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
+    love.window.setMode(windowWidth, windowHeight)
 end
 
 function beginContact(a, b, coll)

@@ -254,7 +254,9 @@ function Map:initWorldCollision(world)
 		end
 	end
 
-	for _, tileset in ipairs(self.tilesets) do
+    -- FIXME: should instead be specifying the layer that causes collision higher up
+--	for _, tileset in ipairs(self.tilesets) do
+    local tileset = self.tilesets[1]         
 		for _, tile in ipairs(tileset.tiles) do
 			local gid = tileset.firstgid + tile.id
 
@@ -282,7 +284,7 @@ function Map:initWorldCollision(world)
 				end
 			end
 		end
-	end
+--	end
 
 	for _, layer in ipairs(self.layers) do
 		if layer.properties.collidable == "true" then
