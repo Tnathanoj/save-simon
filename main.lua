@@ -1,7 +1,10 @@
-require("AnAl")
-require('camera')
+require "postshader"
+require "AnAl"
+require 'camera'
+require 'world'
 local vector = require 'vector'
 local sti = require 'sti'
+local LightWorld = require "light"
 
 local anims = {}
 local objects = {} -- table to hold all our physical objects
@@ -61,78 +64,20 @@ function player_change_room(player)
     objects.player.last_room_change_time = 1 + love.timer.getTime()
 end
 
-function blocks()
-    --let's create a couple blocks to play around with
-    objects.block1 = {}
-    objects.block1.show_bbox = true
-    objects.block1.body = love.physics.newBody(world, 400, 300, "dynamic")
-    objects.block1.shape = love.physics.newRectangleShape(0, 0, 70, 20)
-    objects.block1.fixture = love.physics.newFixture(objects.block1.body, objects.block1.shape, .5) -- A higher density gives it more mass.
-
-    objects.block2 = {}
-    objects.block2.show_bbox = true
-    objects.block2.body = love.physics.newBody(world, 400, 400, "dynamic")
-    objects.block2.shape = love.physics.newRectangleShape(0, 0, 60, 60)
-    objects.block2.fixture = love.physics.newFixture(objects.block2.body, objects.block2.shape, .5)
-
-    objects.block3 = {}
-    objects.block3.show_bbox = true
-    objects.block3.body = love.physics.newBody(world, 400, 200, "dynamic")
-    objects.block3.shape = love.physics.newRectangleShape(0, 0, 50, 5)
-    objects.block3.fixture = love.physics.newFixture(objects.block3.body, objects.block3.shape, .5)
-end
-
-function new_room(map_file)
-    local room = {}
-    room.map = sti.new(map_file)
-    room.world = love.physics.newWorld(0, 9.81 * 64, true)
-    room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
-    --room.map:addCustomLayer("Sprite Layer", 3)
-    room.collision = room.map:initWorldCollision(room.world)
-    return room
-end
-
-function room_get_unused_door(room)
-    for _, obj in pairs(room.map.layers.Objects.objects) do
-        if obj.type == "door" and not obj.used then
-            obj.room = room
-            obj.used = true
-            return obj
-        end
-    end
-end
-
-function connect_doors()
-    for _, level in pairs(levels) do
-        local doors = {}
-        for _, room in pairs(level.rooms) do
-            local door = room_get_unused_door(room)
-            if door and 0 < #doors then
-                local door2 = table.remove(doors, 1)
-                door2.target_door = door
-                door.target_door = door2
-            else
-                table.insert(doors, door)
+-- @return item from list that has a key with the same value
+function item_with_key_value(tbl, key, val)
+    for _, i in pairs(tbl) do
+        for k, v in pairs(i) do
+            if k == key and v == val then
+                return i
             end
         end
     end
-end
-
-function load_levels()
-    local files = love.filesystem.getDirectoryItems("assets")
-    for k, file in ipairs(files) do
-        local room_level, room_name = string.match(file, "level(%d+)_(%a+).lua")
-        if room_level then
-            if levels[room_level] == nil then
-                levels[room_level] = {rooms={}}
-            end
-            levels[room_level].rooms[room_name] = new_room("assets/level" .. room_level .. "_" .. room_name)
-        end
-    end
+    return nil
 end
 
 function love.load()
-    love.graphics.setBackgroundColor( 255, 255, 255 )
+    normal = love.graphics.newImage("assets/gfx/normal.png")
 
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
@@ -140,15 +85,16 @@ function love.load()
 
     love.physics.setMeter(64)
 
-    load_levels()
-    connect_doors()
+    levels = load_levels()
 
     current_room = levels["1"].rooms["start"]
 
     new_player()
 
-    --initial graphics setup
-    love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
+    love.graphics.setBackgroundColor(0, 0, 0)
+    --love.graphics.setBackgroundColor(50, 50, 50)
+    --love.graphics.setBackgroundColor(127, 127, 127)
+    --love.graphics.setBackgroundColor(255, 255, 255)
     love.window.setMode(windowWidth, windowHeight)
 end
 
@@ -209,44 +155,42 @@ function update_player(player, dt)
     end
 end
 
-function love.update(dt)
-    objects.player.touching_ground = false
-
-    current_room.world:update(dt)
-
-    update_player(objects.player, dt)
-
+function update_camera(dt)
     cam_org = vector.new(camera._x, camera._y)
     ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
     sub = ent_org - cam_org
     sub:normalize_inplace()
     dist = ent_org:dist(cam_org)
-
     camera:move(sub.x * dist * dt * 2, sub.y * dist * dt * 2)
+    --camera:setPosition(love.mouse.getX() - 100, love.mouse.getY() - 100)
+    --camera:setPosition(0, 0)
+end
+
+function love.update(dt)
+    objects.player.touching_ground = false
+    current_room.world:update(dt)
+
+    lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
+    --lightMouse.setPosition(player.x, player.y)
+
+    update_player(objects.player, dt)
+    update_camera(dt)
+    current_room.lightWorld:update(dt)
+
+    player.x = objects.player.body:getX()
+    player.y = objects.player.body:getY()
 end
 
 function love.draw()
-    camera:set()
-    player.x = objects.player.body:getX()
-    player.y = objects.player.body:getY()
-	
-    -- Translation would normally be based on a player's x/y
-    local translateX = player.x
-    local translateY = player.y
-
-    -- Draw the map and all objects within
-    current_room.map:draw()
-
-    -- Draw Collision Map (useful for debugging)
-    --current_room.map:drawWorldCollision(current_room.collision)
-
-    for id, obj in pairs(objects) do
-        if obj.show_bbox then
-            love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints()))
-        end
-    end
-
+    current_room.lightWorld:setTranslation(-camera._x, -camera._y, 1)
+    love.graphics.push()
+    love.graphics.translate(-camera._x, -camera._y)
+    current_room.lightWorld:draw(function(l, t, w, h, s)
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        --current_room.map:drawWorldCollision(current_room.collision)
+        current_room.map.layers['Tile Layer 1']:draw()
+    end)
     player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
-
-    camera:unset()
+    love.graphics.pop()
 end
