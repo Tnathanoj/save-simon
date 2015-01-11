@@ -81,9 +81,9 @@ function love.light.newWorld()
 	o.reflectionStrength = 16.0
 	o.reflectionVisibility = 1.0
 	o.changed = true
-	o.blur = nil
+	o.blur = 2.0
 	o.optionShadows = true
-	o.optionPixelShadows = false
+	o.optionPixelShadows = true
 	o.optionGlow = true
 	o.optionRefraction = true
 	o.optionReflection = true
@@ -439,7 +439,6 @@ function love.light.newWorld()
 				love.graphics.setBlendMode("alpha")
 			else
 				love.graphics.setBlendMode("multiplicative")
-				love.graphics.setBlendMode("alpha")
 				love.graphics.setShader()
 				love.graphics.draw(o.shadow, LOVE_LIGHT_TRANSLATE_X, LOVE_LIGHT_TRANSLATE_Y)
 				love.graphics.setBlendMode("alpha")
@@ -1237,7 +1236,6 @@ function love.light.newBody(p, type, ...)
 			o.normalMesh = nil
 		end
 	end
-
 	o.setNormalMap2 = function(normal, x, y, width, height)
 		if normal then
 			o.normal = normal

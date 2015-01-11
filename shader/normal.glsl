@@ -40,7 +40,7 @@ vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords) {
 
 			float att = clamp((1.0 - dist / lightRange) / lightSmooth, 0.0, 1.0);
 
-			return vec4(diff * att, 1.0);
+			return vec4(diff * att, 1.0) * 10;
 		} else {
 			return vec4(0.0, 0.0, 0.0, 1.0);
 		}

@@ -168,7 +168,8 @@ function new_room(map_file)
 
     -- create light world
     room.lightWorld = love.light.newWorld()
-    room.lightWorld.setAmbientColor(15, 15, 31) -- optional
+    --room.lightWorld.setAmbientColor(15, 15, 31) -- optional
+    room.lightWorld.setAmbientColor(0, 0, 0) -- optional
     room.lightWorld.setRefractionStrength(16.0)
     room.lightWorld.setReflectionVisibility(0.75)
 
@@ -183,8 +184,8 @@ function new_room(map_file)
         lightMouse = room.lightWorld.newLight(windowWidth / 2, windowHeight / 2, 255, 255, 255)--, 300)
         --lightMouse.setGlowStrength(0.7) -- optional
         --lightMouse.setGlowSize(100) -- optional
-        --lightMouse.setSmooth(1)
-        --lightMouse.setRange(1000)
+        lightMouse.setSmooth(1)
+        lightMouse.setRange(300)
 
 --        for _, tiles in ipairs(room.map.layers.NormalMap.data) do
 --            for _, tile in pairs(tiles) do
@@ -328,7 +329,7 @@ function love.load()
     new_player()
 
     love.graphics.setBackgroundColor(0, 0, 0)
-    love.graphics.setBackgroundColor(50, 50, 50)
+    --love.graphics.setBackgroundColor(50, 50, 50)
     --love.graphics.setBackgroundColor(127, 127, 127)
     --love.graphics.setBackgroundColor(255, 255, 255)
     love.window.setMode(windowWidth, windowHeight)
@@ -417,6 +418,8 @@ function love.draw()
     -- update lightmap (doesn't need deltatime)
     current_room.lightWorld.update()
 
+    love.postshader.setBuffer("render")
+
     --camera:set()
 
     love.graphics.setBlendMode("alpha")
@@ -426,25 +429,13 @@ function love.draw()
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 
-    -- Draw the map and all objects within
-    current_room.map.layers['Tile Layer 1']:draw()
 
     --current_room.map:drawWorldCollision(current_room.collision)
 
     -- draw lightmap shadows
     current_room.lightWorld.drawShadow()
 
-    --love.graphics.setBlendMode("additive")
-
-    --current_room.lightWorld.drawPixelShadow()
-    --current_room.lightWorld.drawMaterial()
---    current_room.lightWorld.drawShine()
-
---    current_room.lightWorld.drawGlow()
---    current_room.lightWorld.drawReflection()
---    current_room.lightWorld.drawRefraction()
-
-    love.graphics.setBlendMode("alpha")
+    current_room.map.layers['Tile Layer 1']:draw()
 
     for id, obj in pairs(objects) do
         if obj.show_bbox then
@@ -453,6 +444,15 @@ function love.draw()
     end
 
     player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
+
+    current_room.lightWorld.drawShine()
+    current_room.lightWorld.drawPixelShadow()
+    current_room.lightWorld.drawMaterial()
+    current_room.lightWorld.drawGlow()
+    current_room.lightWorld.drawReflection()
+    current_room.lightWorld.drawRefraction()
+
+    love.postshader.draw()
 
     -- draw lightmap shine
     --camera:unset()
