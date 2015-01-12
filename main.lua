@@ -62,9 +62,11 @@ function player_change_room(player)
     objects.player_body.body:destroy()
     new_player_bbox(player)
     objects.player.last_room_change_time = 1 + love.timer.getTime()
+    camera:setPosition(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
 end
 
 function love.load()
+    math.randomseed( os.time() )
     normal = love.graphics.newImage("assets/gfx/normal.png")
 
     -- load animation
