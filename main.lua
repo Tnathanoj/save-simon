@@ -62,17 +62,17 @@ function player_change_room(player)
     objects.player_body.body:destroy()
     new_player_bbox(player)
     objects.player.last_room_change_time = 1 + love.timer.getTime()
+    camera:setPosition(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
 end
 
 function love.load()
+    math.randomseed( os.time() )
     normal = love.graphics.newImage("assets/gfx/normal.png")
 
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
     anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
-    monster = love.graphics.newImage("assets/gfx/monster.png")
-    door = love.graphics.newImage("assets/gfx/door.png")
 
     love.physics.setMeter(64)
 
@@ -83,11 +83,8 @@ function love.load()
     new_player()
 
     love.graphics.setBackgroundColor(0, 0, 0)
-    --love.graphics.setBackgroundColor(50, 50, 50)
-    --love.graphics.setBackgroundColor(127, 127, 127)
-    --love.graphics.setBackgroundColor(255, 255, 255)
+    --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
     love.window.setMode(windowWidth, windowHeight)
-
 end
 
 function beginContact(a, b, coll)
@@ -180,7 +177,7 @@ function love.update(dt)
     current_room.world:update(dt)
     current_room.map:update(dt)
 
-    lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
+    --lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
 
     update_player(objects.player, dt)
@@ -197,7 +194,7 @@ function love.draw()
     love.graphics.translate(-camera._x, -camera._y)
     current_room.lightWorld:draw(function(l, t, w, h, s)
         love.graphics.setColor(255, 255, 255)
-        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth() * 2, love.graphics.getHeight())
         --current_room.map:drawWorldCollision(current_room.collision)
         current_room.map.layers['Tile Layer 1']:draw()
         current_room.map.layers['Objects']:draw()
