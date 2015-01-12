@@ -114,6 +114,10 @@ function new_room(map_file)
             obj.img = love.graphics.newImage("assets/gfx/door.png")
         elseif obj.type == 'light' then
             obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
+        elseif obj.type == 'upstairs' then
+            obj.img = love.graphics.newImage("assets/gfx/upstairs.png")
+        elseif obj.type == 'downstairs' then
+            obj.img = love.graphics.newImage("assets/gfx/downstairs.png")
         end
     end
 
@@ -127,7 +131,11 @@ function new_room(map_file)
         for _, obj in pairs(self.objects) do
             if obj.type == 'monster' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
-            elseif obj.type == 'door' then
+            elseif obj.type == 'door' and obj.target_door then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            elseif obj.type == 'upstairs' then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            elseif obj.type == 'downstairs' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             end
         end
@@ -148,41 +156,70 @@ function room_unused_doors(room)
     end)
 end
 
-function connect_doors(levels)
-    for _, level in pairs(levels) do
-        local doors = {}
+function connect_level_doors(level)
+    -- get the doors from start first
+    local start_doors = {}
+    for door in room_unused_doors(level.rooms["start"]) do
+        table.insert(start_doors, door)
+    end
 
-        -- get the doors from start first
-        for door in room_unused_doors(level.rooms["start"]) do
+    -- get the rest of the doors
+    local doors = {}
+    for _, room in pairs(level.rooms) do
+        for door in room_unused_doors(room) do
             table.insert(doors, door)
         end
+    end
 
-        -- get the rest of the doors
-        for _, room in pairs(level.rooms) do
-            for door in room_unused_doors(room) do
-                table.insert(doors, door)
+    -- here's your procedural generation
+    shuffleTable(doors)
+
+    -- insert start doors at front
+    for _, door in pairs(start_doors) do
+        table.insert(doors, 1, door)
+    end
+
+    -- TODO: this algorithm sucks, needs some love
+    local door = table.remove(doors, 1)
+    while 0 < #doors do
+        for i, door2 in ipairs(doors) do
+            if door2.room == door.room then
+
+            else
+                print("connected " .. door.room.path .. " to " .. door2.room.path)
+                table.remove(doors, i)
+                door2.target_door = door
+                door.target_door = door2
+                break
             end
         end
+        door = table.remove(doors, 1)
+    end
 
-        -- here's your procedural generation
-        shuffleTable(doors)
+    return door
+end
 
-        -- TODO: this algorithm sucks, needs some love
-        local door = table.remove(doors, 1)
-        while 1 < #doors do
-            for i, door2 in ipairs(doors) do
-                if door2.room == door.room then
+function connect_doors(levels)
+    local last_stair = nil
+    for _, level in pairs(levels) do
+    --for i=1, 9, 1 do
+        --local level = levels[i]
+        --print(i)
+        --print(level)
+        -- Hook up stair case from previous level 
+        if last_stair then
+           for door in room_unused_doors(level.rooms["start"]) do
+               door.type = 'upstairs'
+               door.target_door = last_stair
+               door.img = love.graphics.newImage("assets/gfx/upstairs.png")
 
-                else
-                    --print("connected " .. door.room.path .. " to " .. door2.room.path)
-                    table.remove(doors, i)
-                    door2.target_door = door
-                    door.target_door = door2
-                    break
-                end
-            end
-            door = table.remove(doors, 1)
+               last_stair.type = 'downstairs'
+               last_stair.target_door = door
+               last_stair.img = love.graphics.newImage("assets/gfx/downstairs.png")
+               break
+           end
         end
+        last_stair = connect_level_doors(level)
     end
 end
 
@@ -191,12 +228,13 @@ function load_levels()
     local files = love.filesystem.getDirectoryItems("assets")
     for k, file in ipairs(files) do
         local room_level, room_name = string.match(file, "level(%d+)_(%a+).lua")
+        room_level = tonumber(room_level)
         if room_level then
             if levels[room_level] == nil then
                 levels[room_level] = {rooms={}}
             end
+            print("loaded " .. room_level .. "_" .. room_name)
             levels[room_level].rooms[room_name] = new_room("assets/level" .. room_level .. "_" .. room_name)
-            --print("loaded " .. room_level .. "_" .. room_name)
         end
     end
 

@@ -78,7 +78,7 @@ function love.load()
 
     levels = load_levels()
 
-    current_room = levels["1"].rooms["start"]
+    current_room = levels[1].rooms["start"]
 
     new_player()
 
@@ -142,7 +142,7 @@ function update_player(player, dt)
 
     if love.keyboard.isDown("up") then
         for _, obj in pairs(current_room.map.layers.Objects.objects) do
-            if obj.type == "door" then
+            if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
                 x,y = objects.player.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
                 if d < 20 and objects.player.last_room_change_time < love.timer.getTime() then
