@@ -115,10 +115,19 @@ function new_room(map_file)
         elseif obj.type == 'light' then
             obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
             obj.light:setRange(obj.properties.range or 300)
+            if obj.properties.colour then
+                local r, g, b = string.match(obj.properties.colour, "(..)(..)(..)")
+                obj.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
+            end
         elseif obj.type == 'upstairs' then
             obj.img = love.graphics.newImage("assets/gfx/upstairs.png")
         elseif obj.type == 'downstairs' then
             obj.img = love.graphics.newImage("assets/gfx/downstairs.png")
+        elseif obj.type == 'invisiblewall' then
+            local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
+            body:setMass(100000)
+            local shape = love.physics.newRectangleShape(obj.width * 2, obj.height)
+            local f = love.physics.newFixture(body, shape, 1)
         end
     end
 
