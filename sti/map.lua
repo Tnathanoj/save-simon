@@ -255,36 +255,42 @@ function Map:initWorldCollision(world)
 	end
 
     -- FIXME: should instead be specifying the layer that causes collision higher up
---	for _, tileset in ipairs(self.tilesets) do
-    local tileset = self.tilesets[1]         
-		for _, tile in ipairs(tileset.tiles) do
-			local gid = tileset.firstgid + tile.id
+	for _, tileset in ipairs(self.tilesets) do
 
-			if tile.objectGroup then
-				if self.tileInstances[gid] then
-					for _, instance in ipairs(self.tileInstances[gid]) do
-						for _, object in ipairs(tile.objectGroup.objects) do
-							-- Every object in every instance of a tile
-							calculateObjectPosition(object, instance)
-						end
-					end
-				end
-			elseif tile.properties.collidable == "true" and self.tileInstances[gid] then
-				for _, instance in ipairs(self.tileInstances[gid]) do
-					-- Every instance of a tile
-					local object = {
-						shape	= "rectangle",
-						x		= 0,
-						y		= 0,
-						width	= tileset.tilewidth,
-						height	= tileset.tileheight,
-					}
+        if tileset.properties.collidable and tileset.properties.collidable == "false" then
 
-					calculateObjectPosition(object, instance)
-				end
-			end
-		end
---	end
+        else
+
+    --    local tileset = self.tilesets[1]         
+            for _, tile in ipairs(tileset.tiles) do
+                local gid = tileset.firstgid + tile.id
+
+                if tile.objectGroup then
+                    if self.tileInstances[gid] then
+                        for _, instance in ipairs(self.tileInstances[gid]) do
+                            for _, object in ipairs(tile.objectGroup.objects) do
+                                -- Every object in every instance of a tile
+                                calculateObjectPosition(object, instance)
+                            end
+                        end
+                    end
+                elseif tile.properties.collidable == "true" and self.tileInstances[gid] then
+                    for _, instance in ipairs(self.tileInstances[gid]) do
+                        -- Every instance of a tile
+                        local object = {
+                            shape	= "rectangle",
+                            x		= 0,
+                            y		= 0,
+                            width	= tileset.tilewidth,
+                            height	= tileset.tileheight,
+                        }
+
+                        calculateObjectPosition(object, instance)
+                    end
+                end
+            end
+        end
+    end
 
 	for _, layer in ipairs(self.layers) do
 		if layer.properties.collidable == "true" then

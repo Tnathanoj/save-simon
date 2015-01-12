@@ -114,6 +114,7 @@ function new_room(map_file)
             obj.img = love.graphics.newImage("assets/gfx/door.png")
         elseif obj.type == 'light' then
             obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
+            obj.light:setRange(obj.properties.range or 300)
         elseif obj.type == 'upstairs' then
             obj.img = love.graphics.newImage("assets/gfx/upstairs.png")
         elseif obj.type == 'downstairs' then
