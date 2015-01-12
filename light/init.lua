@@ -83,7 +83,7 @@ end
 
 function light_world:update(dt)
   for i = 1, #self.bodies do
-    self.bodies[i].is_on_screen = self.bodies[i]:inRange(-self.l,-self.t,self.w,self.h,self.s)
+--    self.bodies[i].is_on_screen = self.bodies[i]:inRange(-self.l,-self.t,self.w,self.h,self.s)
     if self.bodies[i]:isVisible() then
       self.bodies[i]:update(dt)
     end
