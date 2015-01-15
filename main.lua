@@ -2,68 +2,21 @@ require "postshader"
 require "AnAl"
 require 'camera'
 require 'world'
+require 'player'
 local vector = require 'vector'
 local sti = require 'sti'
 local LightWorld = require "light"
 
-local anims = {}
-local objects = {} -- table to hold all our physical objects
+anims = {}
+objects = {} -- table to hold all our physical objects
 
-local windowWidth = 640
-local windowHeight = 480
+windowWidth = 640
+windowHeight = 480
 
 -- A level is made up of many rooms
 local levels = {}
 
-local current_room = {}
-
-function new_player_bbox(player)
-    --let's create a ball
-    player.body = love.physics.newBody(current_room.world, player.x, player.y, "dynamic")
-    player.shape = love.physics.newCircleShape(10)
-    player.fixture = love.physics.newFixture(player.body, player.shape, 1)
-    player.fixture:setUserData(player)
-    player.body:setFixedRotation(true)
-
-    x = player.x
-    y = player.y
-    objects.player_body = {}
-    player_body = objects.player_body
-    player_body.body = love.physics.newBody(current_room.world, x, y - 50, "dynamic")
-    player_body.shape = love.physics.newRectangleShape(0, 0, 20, 55)
-    player_body.fixture = love.physics.newFixture(player_body.body, player_body.shape, 1)
-    player_body.fixture:setUserData(player_body)
-    --player_body.show_bbox = true
-    love.physics.newPrismaticJoint(player.body, player_body.body, x, y - 50, 0, -1, false)
-    player_body.body:setFixedRotation(true)
-    --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
-    --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
-end
-
-function new_player()
-    objects.player = {}
-    player = objects.player
-    player.x = 650/2
-    player.y = 650/2
-    player.z = 1
-    player.p = 1
-    player.speed = 100
-    player.current_animation = anims.standing
-    --player.show_bbox = true
-    player.touching_ground = false
-    player.last_jump_time = 0
-    player.last_room_change_time = 0
-
-    new_player_bbox(player)
-end
-
-function player_change_room(player)
-    player.body:destroy()
-    objects.player_body.body:destroy()
-    new_player_bbox(player)
-    objects.player.last_room_change_time = 1 + love.timer.getTime()
-    camera:setPosition(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
-end
+current_room = {}
 
 function love.load()
     math.randomseed( os.time() )
@@ -79,8 +32,8 @@ function love.load()
     levels = load_levels()
 
     current_room = levels[1].rooms["start"]
-
-    new_player()
+    
+    objects.player = Player:new()
 
     love.graphics.setBackgroundColor(0, 0, 0)
     --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
@@ -106,66 +59,6 @@ function distance(x1, y1, x2, y2)
     return math.sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2)
 end
 
-function update_player(player, dt)
-
-    -- change animation speed according to ground speed
-    local x, y = player.body:getLinearVelocity()
-    player.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
-
-    player.current_animation:update(dt)
-
-    if love.keyboard.isDown("right") then
-        player.body:applyForce(player.speed, 0)
-        player.p = 1
-        player.z = 1
-        player.current_animation = anims.walking
-    elseif love.keyboard.isDown("left") then
-        objects.player.body:applyForce(-player.speed, 0)
-        player.p = 1
-        player.z = -1
-        player.current_animation = anims.walking
-    else
-        player.current_animation = anims.standing
-    end
-
-    if love.keyboard.isDown("z") then
-        player.current_animation = anims.attacking
-        for k, obj in pairs(current_room.map.layers.Objects.objects) do
-            if obj.type == "monster" then
-                x,y = objects.player.body:getWorldCenter()
-                d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
-                if d < 40 then
-                    obj.hp = obj.hp - 1000
-                    if obj.hp < 0 then
-                        current_room.map.layers.Objects.objects[k] = nil
-                    end
-                end
-            end
-        end
-    end
-
-
-    if love.keyboard.isDown("up") then
-        for _, obj in pairs(current_room.map.layers.Objects.objects) do
-            if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
-                x,y = objects.player.body:getWorldCenter()
-                d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
-                if d < 20 and objects.player.last_room_change_time < love.timer.getTime() then
-                    current_room = obj.target_door.room
-                    player.x = obj.target_door.x
-                    player.y = obj.target_door.y
-                    player_change_room(objects.player)
-                    return
-                end
-            end
-        end
-        if objects.player.touching_ground and objects.player.last_jump_time < love.timer.getTime() then
-            objects.player.body:applyForce(0, -5000)
-            objects.player.last_jump_time = 1 + love.timer.getTime()
-        end
-    end
-end
-
 function update_camera(dt)
     cam_org = vector.new(camera._x, camera._y)
     ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
@@ -185,12 +78,12 @@ function love.update(dt)
     --lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
 
-    update_player(objects.player, dt)
+    objects.player:update(dt)
     update_camera(dt)
     current_room.lightWorld:update(dt)
 
-    player.x = objects.player.body:getX()
-    player.y = objects.player.body:getY()
+    objects.player.x = objects.player.body:getX()
+    objects.player.y = objects.player.body:getY()
 end
 
 function love.draw()
@@ -205,6 +98,6 @@ function love.draw()
         current_room.map.layers['Objects']:draw()
         --current_room.map:draw()
     end)
-    player.current_animation:draw(player.x-player.z*40, player.y-83, 0, player.z, player.p)
+    objects.player.current_animation:draw(objects.player.x-objects.player.z*40, objects.player.y-83, 0, objects.player.z, objects.player.p)
     love.graphics.pop()
 end
