@@ -107,10 +107,15 @@ function distance(x1, y1, x2, y2)
 end
 
 function update_player(player, dt)
+
+    -- change animation speed according to ground speed
+    local x, y = player.body:getLinearVelocity()
+    player.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
+
     player.current_animation:update(dt)
 
     if love.keyboard.isDown("right") then
-        objects.player.body:applyForce(player.speed, 0)
+        player.body:applyForce(player.speed, 0)
         player.p = 1
         player.z = 1
         player.current_animation = anims.walking
