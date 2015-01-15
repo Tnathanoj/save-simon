@@ -123,6 +123,10 @@ function new_room(map_file)
             obj.img = love.graphics.newImage("assets/gfx/upstairs.png")
         elseif obj.type == 'downstairs' then
             obj.img = love.graphics.newImage("assets/gfx/downstairs.png")
+        elseif obj.type == 'goldbar' then
+            obj.img = love.graphics.newImage("assets/gfx/goldbar.png")
+            obj.light = room.lightWorld:newLight(obj.x+16, obj.y+16, 255, 200, 0)
+            obj.light:setRange(20)
         elseif obj.type == 'invisiblewall' then
             local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
             body:setMass(100000)
@@ -142,6 +146,8 @@ function new_room(map_file)
             if obj.type == 'monster' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             elseif obj.type == 'door' and obj.target_door then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            elseif obj.type == 'goldbar' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             elseif obj.type == 'upstairs' then
                 love.graphics.draw(obj.img, obj.x, obj.y)

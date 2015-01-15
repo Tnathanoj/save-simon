@@ -90,9 +90,9 @@ function Player:update(dt)
         end
     end
 
-    if love.keyboard.isDown("up") then
-        for _, obj in pairs(current_room.map.layers.Objects.objects) do
-            if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
+    for id, obj in pairs(current_room.map.layers.Objects.objects) do
+        if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
+            if love.keyboard.isDown("up") then
                 x,y = self.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
                 if d < 20 and self.last_room_change_time < love.timer.getTime() then
@@ -103,7 +103,18 @@ function Player:update(dt)
                     return
                 end
             end
+        elseif obj.type == "goldbar" then
+            x,y = self.body:getWorldCenter()
+            d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
+            if d < 20 then
+                obj = current_room.map.layers.Objects.objects[id]
+                current_room.lightWorld:remove(obj.light)
+                current_room.map.layers.Objects.objects[id] = nil
+            end
         end
+    end
+
+    if love.keyboard.isDown("up") then
         if self.touching_ground and self.last_jump_time < love.timer.getTime() then
             self.body:applyForce(0, -5000)
             self.last_jump_time = 1 + love.timer.getTime()
