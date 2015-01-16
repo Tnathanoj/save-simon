@@ -37,6 +37,7 @@ function love.load()
 
     love.graphics.setBackgroundColor(0, 0, 0)
     --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
+    --love.window.setMode(windowWidth, windowHeight, {vsync=false})
     love.window.setMode(windowWidth, windowHeight)
 end
 
@@ -65,15 +66,38 @@ function update_camera(dt)
     sub = ent_org - cam_org
     sub:normalize_inplace()
     dist = ent_org:dist(cam_org)
-    camera:move(sub.x * dist * dt * 2, sub.y * dist * dt * 2)
+
+    left_hand_side = 0
+    right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
+
+    -- Do camera tracking
+    --camera:move(sub.x * dist * dt, 0)
+
+    -- Do camera follow mouse
     --camera:setPosition(love.mouse.getX() - 100, love.mouse.getY() - 100)
-    --camera:setPosition(0, 0)
+
+    -- Do camera panning
+    dist_from_left = math.abs(left_hand_side - ent_org.x)
+    dist_from_right = math.abs(right_hand_side - ent_org.x)
+    if dist_from_left < dist_from_right then
+        camera:move(-dist_from_left * dt * 2, 0)
+    else
+        camera:move(dist_from_right * dt * 2, 0)
+    end
+
+    -- Do some camera clamping
+    if camera._x < left_hand_side then
+        camera._x = left_hand_side
+    elseif right_hand_side < camera._x then
+        camera._x = right_hand_side
+    end
 end
 
 function love.update(dt)
     objects.player.touching_ground = false
-    current_room.world:update(dt)
+
     current_room.map:update(dt)
+    current_room.world:update(dt)
 
     --lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)

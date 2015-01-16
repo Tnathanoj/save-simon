@@ -50,7 +50,7 @@ function Player:change_room()
     --player_body.body:destroy()
     self:new_bbox()
     self.last_room_change_time = 1 + love.timer.getTime()
-    camera:setPosition(self.x - windowWidth / 2, self.y - windowHeight / 1.5)
+    camera:setX(self.x - windowWidth / 2)--, self.y - windowHeight / 1.5)
 end
 
 function Player:update(dt)
