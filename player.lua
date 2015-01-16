@@ -25,7 +25,7 @@ function Player:new_bbox()
 end
 
 function Player:new()
-    o = o or {}
+    local o = {}
     setmetatable(o, self)
     self.__index = self
 
@@ -55,6 +55,9 @@ function Player:change_room()
 end
 
 function Player:update(dt)
+    self.x = self.body:getX()
+    self.y = self.body:getY()
+
     -- change animation speed according to ground speed
     local x, y = self.body:getLinearVelocity()
     self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
@@ -81,9 +84,10 @@ function Player:update(dt)
             if obj.type == "monster" then
                 x,y = self.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
-                if d < 40 then
-                    obj.hp = obj.hp - 1000
-                    if obj.hp < 0 then
+                if d < 200 then
+                    obj.o.hp = obj.o.hp - 1000
+                    if obj.o.hp < 0 then
+                        obj.o.body:destroy()
                         current_room.map.layers.Objects.objects[k] = nil
                     end
                 end
