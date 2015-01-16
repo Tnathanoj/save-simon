@@ -47,6 +47,7 @@ end
 
 function Player:change_room()
     self.body:destroy()
+    self.body2.body:destroy()
     --player_body.body:destroy()
     self:new_bbox()
     self.last_room_change_time = 1 + love.timer.getTime()
