@@ -127,6 +127,12 @@ function new_room(map_file)
             obj.img = love.graphics.newImage("assets/gfx/goldbar.png")
             obj.light = room.lightWorld:newLight(obj.x+16, obj.y+16, 255, 200, 0)
             obj.light:setRange(20)
+        elseif obj.type == 'vendingmachine' then
+            obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
+            --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
+	    obj.light_shape = room.lightWorld:newImage(obj.img, obj.x + obj.width / 2, obj.y + obj.height / 2 + 4, obj.width, obj.height, 0, 0)
+            obj.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
+            obj.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
         elseif obj.type == 'invisiblewall' then
             local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
             body:setMass(100000)
@@ -148,6 +154,8 @@ function new_room(map_file)
             elseif obj.type == 'door' and obj.target_door then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             elseif obj.type == 'goldbar' then
+                love.graphics.draw(obj.img, obj.x, obj.y)
+            elseif obj.type == 'vendingmachine' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             elseif obj.type == 'upstairs' then
                 love.graphics.draw(obj.img, obj.x, obj.y)
