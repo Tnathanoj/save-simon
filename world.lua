@@ -29,6 +29,7 @@ end
 
 function new_room(map_file)
     local room = {}
+    current_room = room
     room.path = map_file
     room.map = sti.new(map_file)
     room.world = love.physics.newWorld(0, 9.81 * 64, true)
@@ -110,8 +111,7 @@ function new_room(map_file)
 
     for k, obj in ipairs(room.map.layers.Objects.objects) do
         if obj.type == 'monster' then
-            obj.hp = 100
-            obj.img = love.graphics.newImage("assets/gfx/monster.png")
+            obj.o = Monster:new(obj.x, obj.y)
         elseif obj.type == 'door' then
             obj.img = love.graphics.newImage("assets/gfx/door.png")
         elseif obj.type == 'light' then
@@ -145,14 +145,16 @@ function new_room(map_file)
 
     function spriteLayer:update(dt)
         for _, obj in pairs(self.objects) do
-
+            if obj.o and obj.o.update then
+                obj.o:update()
+            end
         end
     end
 
     function spriteLayer:draw()
         for _, obj in pairs(self.objects) do
             if obj.type == 'monster' then
-                love.graphics.draw(obj.img, obj.x, obj.y)
+                obj.o:draw()
             elseif obj.type == 'door' and obj.target_door then
                 love.graphics.draw(obj.img, obj.x, obj.y)
             elseif obj.type == 'goldbar' then

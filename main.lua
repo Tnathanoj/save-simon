@@ -3,6 +3,8 @@ require "AnAl"
 require 'camera'
 require 'world'
 require 'player'
+require 'monster'
+
 local vector = require 'vector'
 local sti = require 'sti'
 local LightWorld = require "light"
@@ -105,9 +107,6 @@ function love.update(dt)
     objects.player:update(dt)
     update_camera(dt)
     current_room.lightWorld:update(dt)
-
-    objects.player.x = objects.player.body:getX()
-    objects.player.y = objects.player.body:getY()
 end
 
 function love.draw()
