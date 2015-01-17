@@ -28,6 +28,7 @@ function love.load()
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
     anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
+    anims["crouching"] = newAnimation(love.graphics.newImage("assets/gfx/mancrouching.png"), 80, 103, .175, 1, 0)
 
     love.physics.setMeter(64)
 

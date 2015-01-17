@@ -126,6 +126,10 @@ function Player:update(dt)
             self.body2.body:applyLinearImpulse(0, -jump_power)
         end
     end
+
+    if love.keyboard.isDown("down") then
+        self.current_animation = anims.crouching
+    end
 end
 
 function Player:attack()
