@@ -36,6 +36,7 @@ function love.load()
     current_room = levels[1].rooms["start"]
     
     objects.player = Player:new()
+    current_room.map.layers.Objects.objects[objects.player] = {x=objects.player.x, y=objects.player.y, o=objects.player, type="player"}
 
     love.graphics.setBackgroundColor(0, 0, 0)
     --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
@@ -50,12 +51,12 @@ function endContact(a, b, coll)
 end
 
 function preSolve(a, b, coll)
-end
-
-function postSolve(a, b, coll, normalimpulse1, tangentimpulse1, normalimpulse2, tangentimpulse2)
     if a:getUserData() == objects.player or b:getUserData() == objects.player then
         objects.player.touching_ground = true
     end
+end
+
+function postSolve(a, b, coll, normalimpulse1, tangentimpulse1, normalimpulse2, tangentimpulse2)
 end
 
 function distance(x1, y1, x2, y2)
@@ -96,15 +97,12 @@ function update_camera(dt)
 end
 
 function love.update(dt)
-    objects.player.touching_ground = false
-
     current_room.map:update(dt)
     current_room.world:update(dt)
 
     --lightMouse:setPosition(love.mouse.getX(), love.mouse.getY())
     --lightMouse.setPosition(player.x, player.y)
 
-    objects.player:update(dt)
     update_camera(dt)
     current_room.lightWorld:update(dt)
 end

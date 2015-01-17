@@ -39,6 +39,7 @@ function Player:new()
     o.touching_ground = false
     o.last_jump_time = 0
     o.last_room_change_time = 0
+    o.last_attack = 0
     o.facing_direction = 1
     o.weapon_reach = 50
 
@@ -47,10 +48,19 @@ function Player:new()
     return o
 end
 
-function Player:change_room()
+function Player:change_room(door)
     self.body:destroy()
     self.body2.body:destroy()
-    --player_body.body:destroy()
+
+    me = current_room.map.layers.Objects.objects[self]
+    current_room.map.layers.Objects.objects[self] = nil
+
+    current_room = door.room
+    current_room.map.layers.Objects.objects[self] = me
+
+    self.x = door.x
+    self.y = door.y
+
     self:new_bbox()
     self.last_room_change_time = 1 + love.timer.getTime()
     camera:setX(self.x - windowWidth / 2)--, self.y - windowHeight / 1.5)
@@ -83,20 +93,7 @@ function Player:update(dt)
     end
 
     if love.keyboard.isDown("z") then
-        self.current_animation = anims.attacking
-        for k, obj in pairs(current_room.map.layers.Objects.objects) do
-            if obj.o and obj.o.takedamage then
-                x,y = self.body:getWorldCenter()
-                d = distance(x + self.facing_direction * self.weapon_reach, y, obj.x + obj.width/2, obj.y + obj.height/2)
-                if d < 50 then
-                    obj.o:takedamage(1000)
-                    if obj.o.hp < 0 then
-                        obj.o:kill()
-                        current_room.map.layers.Objects.objects[k] = nil
-                    end
-                end
-            end
-        end
+        self:attack()
     end
 
     for id, obj in pairs(current_room.map.layers.Objects.objects) do
@@ -105,10 +102,7 @@ function Player:update(dt)
                 x,y = self.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
                 if d < 20 and self.last_room_change_time < love.timer.getTime() then
-                    current_room = obj.target_door.room
-                    self.x = obj.target_door.x
-                    self.y = obj.target_door.y
-                    self:change_room()
+                    self:change_room(obj.target_door)
                     return
                 end
             end
@@ -125,11 +119,34 @@ function Player:update(dt)
 
     if love.keyboard.isDown("up") then
         if self.touching_ground and self.last_jump_time < love.timer.getTime() then
-            local jump_power = 2500
+            local jump_power = 40
             self.last_jump_time = 1.0 + love.timer.getTime()
             self.touching_ground = false
-            self.body:applyForce(0, -jump_power)
-            self.body2.body:applyForce(0, -jump_power)
+            self.body:applyLinearImpulse(0, -jump_power)
+            self.body2.body:applyLinearImpulse(0, -jump_power)
+        end
+    end
+end
+
+function Player:attack()
+    if love.timer.getTime() < self.last_attack then
+        return
+    end
+
+    self.last_attack = 0.5 + love.timer.getTime()
+
+    self.current_animation = anims.attacking
+    for k, obj in pairs(current_room.map.layers.Objects.objects) do
+        if obj.o and obj.o.takedamage then
+            x,y = self.body:getWorldCenter()
+            d = distance(x + self.facing_direction * self.weapon_reach, y, obj.o.x + obj.width/2, obj.o.y + obj.height/2)
+            if d < 50 then
+                obj.o:takedamage(50)
+                if obj.o.hp < 0 then
+                    obj.o:kill()
+                    current_room.map.layers.Objects.objects[k] = nil
+                end
+            end
         end
     end
 end

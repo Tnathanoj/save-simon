@@ -146,7 +146,7 @@ function new_room(map_file)
     function spriteLayer:update(dt)
         for _, obj in pairs(self.objects) do
             if obj.o and obj.o.update then
-                obj.o:update()
+                obj.o:update(dt)
             end
         end
     end
