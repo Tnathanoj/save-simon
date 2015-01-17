@@ -117,8 +117,11 @@ function Player:update(dt)
 
     if love.keyboard.isDown("up") then
         if self.touching_ground and self.last_jump_time < love.timer.getTime() then
-            self.body:applyForce(0, -5000)
-            self.last_jump_time = 1 + love.timer.getTime()
+            local jump_power = 2500
+            self.body:applyForce(0, -jump_power)
+            self.body2.body:applyForce(0, -jump_power)
+            self.last_jump_time = 1.0 + love.timer.getTime()
+            self.touching_ground = false
         end
     end
 end
