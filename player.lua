@@ -122,5 +122,3 @@ function Player:update(dt)
         end
     end
 end
-
-

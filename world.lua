@@ -106,6 +106,8 @@ function new_room(map_file)
 
     local spriteLayer = room.map.layers["Objects"]
 
+    shuffleTable(room.map.layers.Objects.objects)
+
     for k, obj in ipairs(room.map.layers.Objects.objects) do
         if obj.type == 'monster' then
             obj.hp = 100
