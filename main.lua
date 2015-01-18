@@ -30,6 +30,12 @@ function love.load()
     anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking.png"), 80, 103, .175, 1, 0)
     anims["crouching"] = newAnimation(love.graphics.newImage("assets/gfx/mancrouching.png"), 80, 103, .175, 1, 0)
 
+    anims.reverant = {
+        walking = newAnimation(love.graphics.newImage("assets/gfx/reverant_walking.png"), 80, 103, .175, 1, 0),
+        standing = newAnimation(love.graphics.newImage("assets/gfx/reverant_standing.png"), 80, 103, .15, 1, 1),
+    }
+
+
     love.physics.setMeter(64)
 
     levels = load_levels()
@@ -53,7 +59,9 @@ end
 
 function preSolve(a, b, coll)
     if a:getUserData() == objects.player or b:getUserData() == objects.player then
-        objects.player.touching_ground = true
+        local obj = objects.player
+        obj.last_touching_ground = 0.1 + love.timer.getTime()
+        obj.touching_ground= true
     end
 end
 
@@ -117,9 +125,9 @@ function love.draw()
         love.graphics.rectangle("fill", 0, -500, love.graphics.getWidth() * 4, love.graphics.getHeight() * 2)
         --current_room.map:drawWorldCollision(current_room.collision)
         current_room.map.layers['Tile Layer 1']:draw()
-        current_room.map.layers['Objects']:draw()
         --current_room.map:draw()
     end)
-    objects.player.current_animation:draw(objects.player.x-objects.player.z*40, objects.player.y-83, 0, objects.player.z, objects.player.p)
+    current_room.map.layers['Objects']:draw()
+    objects.player.current_animation:draw(objects.player.x-objects.player.facing_direction*40, objects.player.y-83, 0, objects.player.facing_direction, 1)
     love.graphics.pop()
 end

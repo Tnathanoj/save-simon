@@ -8,6 +8,8 @@ function Player:new_bbox()
     self.shape = love.physics.newCircleShape(10)
     self.fixture = love.physics.newFixture(self.body, self.shape, 1)
     self.fixture:setUserData(self)
+    self.fixture:setFriction(1)
+    --self.body:setInertia(100)
     self.body:setFixedRotation(true)
 
     x = self.x
@@ -16,7 +18,8 @@ function Player:new_bbox()
     self.body2.body = love.physics.newBody(current_room.world, x, y - 50, "dynamic")
     self.body2.shape = love.physics.newRectangleShape(0, 0, 20, 55)
     self.body2.fixture = love.physics.newFixture(self.body2.body, self.body2.shape, 1)
-    self.body2.fixture:setUserData(self.body2)
+    self.body2.fixture:setUserData(self)
+    --self.body2.fixture:setFriction(2)
     love.physics.newPrismaticJoint(self.body, self.body2.body, x, y - 50, 0, -1, false)
     self.body2.body:setFixedRotation(true)
     --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
@@ -31,12 +34,10 @@ function Player:new()
 
     o.x = 650/2
     o.y = 650/2
-    o.z = 1
-    o.p = 1
-    o.speed = 100
+    o.speed = 4
     o.current_animation = anims.standing
-    --o.show_bbox = true
     o.touching_ground = false
+    o.last_touching_ground = 0
     o.last_jump_time = 0
     o.last_room_change_time = 0
     o.last_attack = 0
@@ -70,26 +71,38 @@ function Player:update(dt)
     self.x = self.body:getX()
     self.y = self.body:getY()
 
-    -- change animation speed according to ground speed
     local x, y = self.body:getLinearVelocity()
+
+    if self.last_touching_ground < love.timer.getTime() then
+        if math.floor(y) == 0 then
+        else
+            self.touching_ground = false
+        end
+    end
+
+    -- change animation speed according to ground speed
     self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
 
     self.current_animation:update(dt)
 
-    if love.keyboard.isDown("right") then
-        self.body:applyForce(self.speed, 0)
-        self.p = 1
-        self.z = 1
+    if 10 < math.abs(x) and self.touching_ground then
         self.current_animation = anims.walking
-        self.facing_direction = 1
-    elseif love.keyboard.isDown("left") then
-        self.body:applyForce(-self.speed, 0)
-        self.p = 1
-        self.z = -1
-        self.current_animation = anims.walking
-        self.facing_direction = -1
     else
         self.current_animation = anims.standing
+    end
+
+    if love.keyboard.isDown("right") then
+        if self.touching_ground then
+            self.body:applyLinearImpulse(self.speed, 0)
+            self.current_animation = anims.walking
+        end
+        self.facing_direction = 1
+    elseif love.keyboard.isDown("left") then
+        if self.touching_ground then
+            self.body:applyLinearImpulse(-self.speed, 0)
+            self.current_animation = anims.walking
+        end
+        self.facing_direction = -1
     end
 
     if love.keyboard.isDown("z") then
