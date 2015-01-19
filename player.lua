@@ -92,16 +92,12 @@ function Player:update(dt)
     end
 
     if love.keyboard.isDown("right") then
-        if self.touching_ground then
             self.body:applyLinearImpulse(self.speed, 0)
             self.current_animation = anims.walking
-        end
         self.facing_direction = 1
     elseif love.keyboard.isDown("left") then
-        if self.touching_ground then
             self.body:applyLinearImpulse(-self.speed, 0)
             self.current_animation = anims.walking
-        end
         self.facing_direction = -1
     end
 
