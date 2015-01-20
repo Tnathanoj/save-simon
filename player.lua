@@ -130,7 +130,7 @@ function Player:update(dt)
         end
     end
 
-    if love.keyboard.isDown("up") then
+    if self.last_room_change_time < love.timer.getTime() and love.keyboard.isDown("up") then
         if self.touching_ground and self.last_jump_time < love.timer.getTime() then
             local jump_power = 40
             self.last_jump_time = 1.0 + love.timer.getTime()
