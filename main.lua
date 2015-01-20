@@ -95,9 +95,9 @@ function update_camera(dt)
     dist_from_left = math.abs(left_hand_side - ent_org.x)
     dist_from_right = math.abs(right_hand_side - ent_org.x)
     if dist_from_left < dist_from_right then
-        camera:move(-dist_from_left * dt * 2, 0)
+        camera:move(-400 * dt * 2, 0)
     else
-        camera:move(dist_from_right * dt * 2, 0)
+        camera:move(400 * dt * 2, 0)
     end
 
     -- Do some camera clamping
