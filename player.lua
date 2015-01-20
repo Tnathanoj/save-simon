@@ -43,6 +43,9 @@ function Player:new()
     o.last_attack = 0
     o.facing_direction = 1
     o.weapon_reach = 50
+    o.hp = 100
+    o.shield_hp = 100
+    o.gold = 0
 
     o:new_bbox()
 
@@ -119,6 +122,7 @@ function Player:update(dt)
             x,y = self.body:getWorldCenter()
             d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
             if d < 20 then
+                self.gold = self.gold + 10
                 obj = current_room.map.layers.Objects.objects[id]
                 current_room.lightWorld:remove(obj.light)
                 current_room.map.layers.Objects.objects[id] = nil
@@ -162,4 +166,13 @@ function Player:attack()
             end
         end
     end
+end
+
+--function Player:takedamage(dmg)
+--    self.hp = self.hp - dmg
+--end
+
+function Player:kill()
+    self.body:destroy()
+    self.body2.body:destroy()
 end

@@ -24,6 +24,9 @@ function love.load()
     math.randomseed( os.time() )
     normal = love.graphics.newImage("assets/gfx/normal.png")
 
+    font = love.graphics.newFont("assets/font/joystix.ttf", 15)
+    love.graphics.setFont(font)
+
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessman.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/weaponlessmanstanding.png"), 80, 103, .15, 1, 1)
@@ -130,4 +133,6 @@ function love.draw()
     current_room.map.layers['Objects']:draw()
     objects.player.current_animation:draw(objects.player.x-objects.player.facing_direction*40, objects.player.y-83, 0, objects.player.facing_direction, 1)
     love.graphics.pop()
+
+    love.graphics.print(objects.player.gold, 16, 16)
 end
