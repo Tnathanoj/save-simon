@@ -15,6 +15,8 @@ objects = {} -- table to hold all our physical objects
 windowWidth = 640
 windowHeight = 480
 
+screen_pan_time = 1
+
 -- A level is made up of many rooms
 local levels = {}
 
@@ -96,12 +98,11 @@ function update_camera(dt)
     local dist_from_left = math.abs(left_hand_side - ent_org.x)
     local dist_from_right = math.abs(right_hand_side - ent_org.x)
 
-    if love.timer.getTime() < camera_change_time + 1 then
-        local direction = 1
+    if love.timer.getTime() < camera_change_time + screen_pan_time then
         if dist_from_left < dist_from_right then
-            camera._x = 640 - easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, 1.0)
+            camera._x = 640 - easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, screen_pan_time)
         else
-            camera._x = easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, 1.0)
+            camera._x = easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, screen_pan_time)
         end
 
     elseif camera._x + 320 < ent_org.x then
