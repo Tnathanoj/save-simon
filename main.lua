@@ -75,6 +75,13 @@ function distance(x1, y1, x2, y2)
     return math.sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2)
 end
 
+function easeOutQuad(t, b, c, d)
+    t = t / d
+    return -c * t * (t - 2) + b
+end
+
+camera_change_time = 0
+
 function update_camera(dt)
     cam_org = vector.new(camera._x, camera._y)
     ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
@@ -82,30 +89,32 @@ function update_camera(dt)
     sub:normalize_inplace()
     dist = ent_org:dist(cam_org)
 
-    left_hand_side = 0
-    right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
+    local left_hand_side = 0
+    local right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
+
+    -- Do camera panning
+    local dist_from_left = math.abs(left_hand_side - ent_org.x)
+    local dist_from_right = math.abs(right_hand_side - ent_org.x)
+
+    if love.timer.getTime() < camera_change_time + 1 then
+        local direction = 1
+        if dist_from_left < dist_from_right then
+            camera._x = 640 - easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, 1.0)
+        else
+            camera._x = easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, 1.0)
+        end
+
+    elseif camera._x + 320 < ent_org.x then
+        camera_change_time = love.timer.getTime()
+    elseif ent_org.x + 320 < camera._x then
+        camera_change_time = love.timer.getTime()
+    end
 
     -- Do camera tracking
     --camera:move(sub.x * dist * dt, 0)
 
     -- Do camera follow mouse
     --camera:setPosition(love.mouse.getX() - 100, love.mouse.getY() - 100)
-
-    -- Do camera panning
-    dist_from_left = math.abs(left_hand_side - ent_org.x)
-    dist_from_right = math.abs(right_hand_side - ent_org.x)
-    if dist_from_left < dist_from_right then
-        camera:move(-400 * dt * 2, 0)
-    else
-        camera:move(400 * dt * 2, 0)
-    end
-
-    -- Do some camera clamping
-    if camera._x < left_hand_side then
-        camera._x = left_hand_side
-    elseif right_hand_side < camera._x then
-        camera._x = right_hand_side
-    end
 end
 
 function love.update(dt)
