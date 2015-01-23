@@ -84,7 +84,23 @@ end
 
 camera_change_time = 0
 
+-- Clamp camera
+-- Make sure camera is on focus
+function clamp_camera(self)
+    local left_hand_side = 0
+    local right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
+
+    if self._x < left_hand_side then
+        self._x = left_hand_side
+    elseif right_hand_side < self._x then
+        self._x = right_hand_side
+    end
+end
+
 function update_camera(dt)
+
+    clamp_camera(camera)
+
     cam_org = vector.new(camera._x, camera._y)
     ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
 
@@ -97,14 +113,14 @@ function update_camera(dt)
 
     if love.timer.getTime() < camera_change_time + screen_pan_time then
         if dist_from_left < dist_from_right then
-            camera._x = 640 - easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, screen_pan_time)
+            camera._x = windowWidth - easeOutQuad(love.timer.getTime() - camera_change_time, 0, windowWidth, screen_pan_time)
         else
-            camera._x = easeOutQuad(love.timer.getTime() - camera_change_time, 0, 640, screen_pan_time)
+            camera._x = easeOutQuad(love.timer.getTime() - camera_change_time, 0, windowWidth, screen_pan_time)
         end
 
-    elseif camera._x + 320 < ent_org.x then
+    elseif camera._x + windowWidth / 2 < ent_org.x then
         camera_change_time = love.timer.getTime()
-    elseif ent_org.x + 320 < camera._x then
+    elseif ent_org.x + windowWidth / 2 < camera._x then
         camera_change_time = love.timer.getTime()
     end
 

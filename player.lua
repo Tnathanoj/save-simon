@@ -67,7 +67,7 @@ function Player:change_room(door)
 
     self:new_bbox()
     self.last_room_change_time = 1 + love.timer.getTime()
-    camera:setX(self.x - windowWidth / 2)--, self.y - windowHeight / 1.5)
+    camera:setX(self.x - self.x % windowWidth)
 end
 
 function Player:update(dt)
