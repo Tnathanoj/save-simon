@@ -143,6 +143,44 @@ function Player:update(dt)
     if love.keyboard.isDown("down") then
         self.current_animation = anims.crouching
     end
+
+
+    if love.keyboard.isDown("1") then
+        warp_to_level(self, 1)
+    elseif love.keyboard.isDown("2") then
+        warp_to_level(self, 2)
+    elseif love.keyboard.isDown("3") then
+        warp_to_level(self, 3)
+    elseif love.keyboard.isDown("4") then
+        warp_to_level(self, 4)
+    elseif love.keyboard.isDown("5") then
+        warp_to_level(self, 5)
+    elseif love.keyboard.isDown("6") then
+        warp_to_level(self, 6)
+    elseif love.keyboard.isDown("7") then
+        warp_to_level(self, 7)
+    elseif love.keyboard.isDown("8") then
+        warp_to_level(self, 8)
+    elseif love.keyboard.isDown("9") then
+        warp_to_level(self, 9)
+    end
+end
+
+function warp_to_level(self, level)
+    for door in room_doors(levels[level].rooms["start"]) do
+        self:change_room(door)
+        return 
+    end
+end
+
+function room_doors(room)
+    return coroutine.wrap(function()
+    for _, obj in pairs(room.map.layers.Objects.objects) do
+        if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
+            coroutine.yield(obj)
+        end
+    end
+    end)
 end
 
 function Player:attack()

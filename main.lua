@@ -18,7 +18,7 @@ windowHeight = 480
 screen_pan_time = 1
 
 -- A level is made up of many rooms
-local levels = {}
+levels = {}
 
 current_room = {}
 
@@ -87,9 +87,6 @@ camera_change_time = 0
 function update_camera(dt)
     cam_org = vector.new(camera._x, camera._y)
     ent_org = vector.new(objects.player.x - windowWidth / 2, objects.player.y - windowHeight / 1.5)
-    sub = ent_org - cam_org
-    sub:normalize_inplace()
-    dist = ent_org:dist(cam_org)
 
     local left_hand_side = 0
     local right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
@@ -110,9 +107,6 @@ function update_camera(dt)
     elseif ent_org.x + 320 < camera._x then
         camera_change_time = love.timer.getTime()
     end
-
-    -- Do camera tracking
-    --camera:move(sub.x * dist * dt, 0)
 
     -- Do camera follow mouse
     --camera:setPosition(love.mouse.getX() - 100, love.mouse.getY() - 100)
