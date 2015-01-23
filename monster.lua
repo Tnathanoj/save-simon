@@ -1,5 +1,4 @@
 
-
 Monster = {}
 
 function Monster:new_bbox()

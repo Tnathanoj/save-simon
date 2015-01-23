@@ -1,4 +1,3 @@
-require "postshader"
 require "AnAl"
 require 'camera'
 require 'world'

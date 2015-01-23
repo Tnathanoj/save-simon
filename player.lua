@@ -1,4 +1,8 @@
 
+jump_power = 40
+crouch_jump_power = jump_power * 1.5
+crouch_jump_time_delay = 0.2
+
 Player = {}
 
 function Player:new_bbox()
@@ -41,6 +45,7 @@ function Player:new()
     o.last_jump_time = 0
     o.last_room_change_time = 0
     o.last_attack = 0
+    o.last_crouch = 0
     o.facing_direction = 1
     o.weapon_reach = 50
     o.hp = 100
@@ -68,6 +73,23 @@ function Player:change_room(door)
     self:new_bbox()
     self.last_room_change_time = 1 + love.timer.getTime()
     camera:setX(self.x - self.x % windowWidth)
+end
+
+function Player:jump()
+
+    local power = jump_power
+
+    -- Do crouch jump
+    -- TODO: crouch jumping uses lots of FOOD!
+    if love.timer.getTime() < self.last_crouch + crouch_jump_time_delay then
+        power = crouch_jump_power
+    end
+
+    self.last_jump_time = love.timer.getTime()
+    self.touching_ground = false
+    self.body:applyLinearImpulse(0, -power)
+    self.body2.body:applyLinearImpulse(0, -power)
+
 end
 
 function Player:update(dt)
@@ -131,19 +153,15 @@ function Player:update(dt)
     end
 
     if self.last_room_change_time < love.timer.getTime() and love.keyboard.isDown("up") then
-        if self.touching_ground and self.last_jump_time < love.timer.getTime() then
-            local jump_power = 40
-            self.last_jump_time = 1.0 + love.timer.getTime()
-            self.touching_ground = false
-            self.body:applyLinearImpulse(0, -jump_power)
-            self.body2.body:applyLinearImpulse(0, -jump_power)
+        if self.touching_ground and self.last_jump_time + 1 < love.timer.getTime() then
+            self:jump()
         end
     end
 
     if love.keyboard.isDown("down") then
         self.current_animation = anims.crouching
+        self.last_crouch = love.timer.getTime()
     end
-
 
     if love.keyboard.isDown("1") then
         warp_to_level(self, 1)
