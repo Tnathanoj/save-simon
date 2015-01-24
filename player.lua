@@ -22,7 +22,7 @@ function Player:new_bbox()
     y = self.y
     self.body2 = {}
     self.body2.body = love.physics.newBody(current_room.world, x, y - 50, "dynamic")
-    self.body2.shape = love.physics.newRectangleShape(0, 0, 20, 55)
+    self.body2.shape = love.physics.newRectangleShape(0, 0, 20, 45)
     self.body2.fixture = love.physics.newFixture(self.body2.body, self.body2.shape, 1)
     self.body2.fixture:setUserData(self)
     --self.body2.fixture:setFriction(2)

@@ -31,12 +31,14 @@ function love.load()
     -- load animation
     anims["walking"] = newAnimation(love.graphics.newImage("assets/gfx/manwalking.png"), 80, 103, .175, 1, 0)
     anims["standing"] = newAnimation(love.graphics.newImage("assets/gfx/manstanding.png"), 80, 103, .15, 1, 1)
+    --anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking2.png"), 96, 103, .055, 1, 0)
     anims["attacking"] = newAnimation(love.graphics.newImage("assets/gfx/manattacking2.png"), 96, 103, .055, 1, 0)
     anims["crouching"] = newAnimation(love.graphics.newImage("assets/gfx/mancrouching.png"), 80, 103, .175, 1, 0)
 
     anims.reverant = {
         walking = newAnimation(love.graphics.newImage("assets/gfx/reverant_walking.png"), 80, 103, .175, 1, 0),
         standing = newAnimation(love.graphics.newImage("assets/gfx/reverant_standing.png"), 80, 103, .15, 1, 1),
+        attacking = newAnimation(love.graphics.newImage("assets/gfx/reverant_attacking.png"), 96, 103, .085, 1, 0),
     }
 
 

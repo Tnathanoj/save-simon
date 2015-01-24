@@ -1,5 +1,37 @@
 
+attack_time = 0.3
+attack_cooldown_time = 1
+
+
+
 Monster = {}
+
+function Monster:attack()
+
+    if love.timer.getTime() < self.last_attack + attack_cooldown_time then
+        return
+    end
+
+    self.last_attack = love.timer.getTime()
+
+    self.current_animation = anims.reverant.attacking
+    self.current_animation:reset()
+    for k, obj in pairs(current_room.map.layers.Objects.objects) do
+        if obj.o and obj.o.takedamage then
+            x,y = self.body:getWorldCenter()
+--            d = distance(x + self.facing_direction * self.weapon_reach, y, obj.o.x + obj.width/2, obj.o.y + obj.height/2)
+--            if d < 50 then
+--                obj.o:takedamage(50)
+--                if obj.o.hp < 0 then
+--                    obj.o:kill()
+--                    current_room.map.layers.Objects.objects[k] = nil
+--                end
+--            end
+        end
+    end
+end
+
+
 
 function Monster:new_bbox()
     self.body = love.physics.newBody(current_room.world, self.x, self.y, "dynamic")
@@ -19,28 +51,30 @@ function Monster:new_bbox()
     self.body2.body:setFixedRotation(true)
 end
 
+function apply_monster_cage(self)
+    if self.x < self.cage.x then
+        self.body:setX(self.cage.x + 5)
+        --self.body:applyLinearImpulse(self.speed * 10, 0)
+        self.body:setLinearVelocity(5, 0)
+        self.wonder_time = 1 + love.timer.getTime()
+        self.facing_direction =  self.facing_direction * -1
+    elseif self.cage.x + self.cage.width < self.x then
+        self.body:setX(self.cage.x + self.cage.width - 5)
+        --self.body:applyLinearImpulse(-self.speed * 10, 0)
+        self.body:setLinearVelocity(-5, 0)
+        self.wonder_time = 1 + love.timer.getTime()
+        self.facing_direction =  self.facing_direction * -1
+    end
+end
+
 function Monster:update(dt)
 
     -- change animation speed according to ground speed
     local x, y = self.body:getLinearVelocity()
-    self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
     self.current_animation:update(dt)
 
-    -- Apply monster cage restriction
     if self.cage then
-        if self.x < self.cage.x then
-            self.body:setX(self.cage.x + 5)
-            --self.body:applyLinearImpulse(self.speed * 10, 0)
-            self.body:setLinearVelocity(5, 0)
-            self.wonder_time = 1 + love.timer.getTime()
-            self.facing_direction =  self.facing_direction * -1
-        elseif self.cage.x + self.cage.width < self.x then
-            self.body:setX(self.cage.x + self.cage.width - 5)
-            --self.body:applyLinearImpulse(-self.speed * 10, 0)
-            self.body:setLinearVelocity(-5, 0)
-            self.wonder_time = 1 + love.timer.getTime()
-            self.facing_direction =  self.facing_direction * -1
-        end
+        apply_monster_cage(self)
     end
 
     self.x = self.body:getX()
@@ -54,7 +88,12 @@ function Monster:update(dt)
             end
         end
     else
-        if self.wonder_time < love.timer.getTime() then
+
+        -- Handle attacking animation    
+        if love.timer.getTime() < self.last_attack + attack_time then
+            self.current_animation:setSpeed(1)
+
+        elseif self.wonder_time < love.timer.getTime() then
             if self.x < self.target.o.x then
                 --self.body:applyForce(self.speed, 0)
                 self.body:applyLinearImpulse(self.speed, 0)
@@ -68,8 +107,21 @@ function Monster:update(dt)
             end
         else
             self.body:applyLinearImpulse(self.speed * self.facing_direction, 0)
+            self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
         end
     end
+
+   for k, obj in pairs(current_room.map.layers.Objects.objects) do
+        if obj.o then --and obj.o.takedamage then
+            if obj.type == "player" then
+                d = distance(obj.o.x, obj.o.y, self.x, self.y)
+                if d < 80 then
+                    self:attack()
+                end
+            end
+        end
+    end
+
 end
 
 function Monster:draw()
@@ -84,6 +136,16 @@ end
 function Monster:kill()
     self.body:destroy()
     self.body2.body:destroy()
+end
+
+function place_in_monster_cage(self)
+    for id, obj in pairs(current_room.map.layers.Objects.objects) do
+        if obj.type == "invisiblemonstercage" then
+            if obj.x < self.x and self.x < obj.x + obj.width then
+                self.cage = obj
+            end
+        end
+    end
 end
 
 function Monster:new(x, y)
@@ -103,13 +165,9 @@ function Monster:new(x, y)
     o.cage = nil
     o:new_bbox()
     o.wonder_time = 0
+    o.last_attack = 0
 
-    for id, obj in pairs(current_room.map.layers.Objects.objects) do
-        if obj.type == "invisiblemonstercage" then
-            o.cage = obj
-        end
-    end
-
+    place_in_monster_cage(o)
 
     return o
 end
