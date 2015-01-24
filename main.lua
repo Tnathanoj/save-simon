@@ -26,6 +26,8 @@ function love.load()
     normal = love.graphics.newImage("assets/gfx/normal.png")
 
     font = love.graphics.newFont("assets/font/joystix.ttf", 15)
+
+    love.graphics.setDefaultFilter("nearest","nearest")
     love.graphics.setFont(font)
 
     -- load animation
@@ -52,7 +54,7 @@ function love.load()
     current_room.map.layers.Objects.objects[objects.player] = {x=objects.player.x, y=objects.player.y, o=objects.player, type="player"}
 
     love.graphics.setBackgroundColor(0, 0, 0)
-    --love.window.setMode(windowWidth, windowHeight, {fullscreen=true})
+    --love.window.setMode(windowWidth, windowHeight, {fullscreen=true, highdpi=true})
     --love.window.setMode(windowWidth, windowHeight, {vsync=false})
     love.window.setMode(windowWidth, windowHeight)
 end
