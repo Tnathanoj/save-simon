@@ -130,23 +130,23 @@ function Player:update(dt)
 
     if love.timer.getTime() < self.last_attack + attack_time then
 
-    elseif love.keyboard.isDown("right") then
+    elseif love.keyboard.isDown("right") or love.keyboard.isDown("f") then
         self.body:applyLinearImpulse(self.speed, 0)
         self.current_animation = anims.walking
         self.facing_direction = 1
-    elseif love.keyboard.isDown("left") then
+    elseif love.keyboard.isDown("left") or love.keyboard.isDown("e") then
         self.body:applyLinearImpulse(-self.speed, 0)
         self.current_animation = anims.walking
         self.facing_direction = -1
     end
 
-    if love.keyboard.isDown("z") then
+    if love.keyboard.isDown("z") or love.keyboard.isDown("j")  then
         self:attack()
     end
 
     for id, obj in pairs(current_room.map.layers.Objects.objects) do
         if obj.type == "door" or obj.type == "downstairs" or obj.type == "upstairs" then
-            if love.keyboard.isDown("up") then
+            if love.keyboard.isDown("up") or love.keyboard.isDown("c") then
                 x,y = self.body:getWorldCenter()
                 d = distance(x, y, obj.x + obj.width/2, obj.y + obj.height/2)
                 if d < 20 and self.last_room_change_time < love.timer.getTime() then
@@ -166,13 +166,14 @@ function Player:update(dt)
         end
     end
 
-    if self.last_room_change_time < love.timer.getTime() and love.keyboard.isDown("up") then
+    if self.last_room_change_time < love.timer.getTime() and
+        (love.keyboard.isDown("up") or love.keyboard.isDown("c")) then
         if self.touching_ground and self.last_jump_time + 1 < love.timer.getTime() then
             self:jump()
         end
     end
 
-    if love.keyboard.isDown("down") then
+    if love.keyboard.isDown("down") or love.keyboard.isDown("d") then
         self.current_animation = anims.crouching
         self.last_crouch = love.timer.getTime()
     end
