@@ -3,7 +3,7 @@ Monster = {}
 
 function Monster:new_bbox()
     self.body = love.physics.newBody(current_room.world, self.x, self.y, "dynamic")
-    self.shape = love.physics.newCircleShape(20)
+    self.shape = love.physics.newCircleShape(10)
     self.fixture = love.physics.newFixture(self.body, self.shape, 1)
     self.fixture:setUserData(self)
     self.body:setFixedRotation(true)

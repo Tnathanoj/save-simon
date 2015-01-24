@@ -2,6 +2,8 @@
 jump_power = 40
 crouch_jump_power = jump_power * 1.5
 crouch_jump_time_delay = 0.2
+attack_time = 0.3
+attack_cooldown_time = 0.6
 
 Player = {}
 
@@ -105,24 +107,36 @@ function Player:update(dt)
         end
     end
 
-    -- change animation speed according to ground speed
-    self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
-
     self.current_animation:update(dt)
 
-    if 10 < math.abs(x) and self.touching_ground then
+
+    -- Handle attacking animation    
+    if love.timer.getTime() < self.last_attack + attack_time then
+        self.current_animation:setSpeed(1)
+
+    -- Handle walking animation    
+    elseif 10 < math.abs(x) and self.touching_ground then
         self.current_animation = anims.walking
+
+        -- change animation speed according to ground speed
+        self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
+
+    -- Handle standing animation    
     else
+        self.current_animation:setSpeed(1)
         self.current_animation = anims.standing
     end
 
-    if love.keyboard.isDown("right") then
-            self.body:applyLinearImpulse(self.speed, 0)
-            self.current_animation = anims.walking
+
+    if love.timer.getTime() < self.last_attack + attack_time then
+
+    elseif love.keyboard.isDown("right") then
+        self.body:applyLinearImpulse(self.speed, 0)
+        self.current_animation = anims.walking
         self.facing_direction = 1
     elseif love.keyboard.isDown("left") then
-            self.body:applyLinearImpulse(-self.speed, 0)
-            self.current_animation = anims.walking
+        self.body:applyLinearImpulse(-self.speed, 0)
+        self.current_animation = anims.walking
         self.facing_direction = -1
     end
 
@@ -202,13 +216,14 @@ function room_doors(room)
 end
 
 function Player:attack()
-    if love.timer.getTime() < self.last_attack then
+    if love.timer.getTime() < self.last_attack + attack_cooldown_time then
         return
     end
 
-    self.last_attack = 0.5 + love.timer.getTime()
+    self.last_attack = love.timer.getTime()
 
     self.current_animation = anims.attacking
+    self.current_animation:reset()
     for k, obj in pairs(current_room.map.layers.Objects.objects) do
         if obj.o and obj.o.takedamage then
             x,y = self.body:getWorldCenter()
