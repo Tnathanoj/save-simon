@@ -1,6 +1,8 @@
 
-attack_time = 0.3
-attack_cooldown_time = 1
+local attack_time = 0.3
+local attack_cooldown_time = 1
+local walk_speed = 2
+local max_walk_speed = 150
 
 
 
@@ -71,6 +73,9 @@ function Monster:update(dt)
 
     -- change animation speed according to ground speed
     local x, y = self.body:getLinearVelocity()
+
+    clamp_velocity(x, y, self.body, max_walk_speed)
+
     self.current_animation:update(dt)
 
     if self.cage then
@@ -96,17 +101,17 @@ function Monster:update(dt)
         elseif self.wonder_time < love.timer.getTime() then
             if self.x < self.target.o.x then
                 --self.body:applyForce(self.speed, 0)
-                self.body:applyLinearImpulse(self.speed, 0)
+                self.body:applyLinearImpulse(walk_speed, 0)
                 self.current_animation = anims.reverant.walking
                 self.facing_direction = 1
             else
                 --self.body:applyForce(-self.speed, 0)
-                self.body:applyLinearImpulse(-self.speed, 0)
+                self.body:applyLinearImpulse(-walk_speed, 0)
                 self.current_animation = anims.reverant.walking
                 self.facing_direction = -1
             end
         else
-            self.body:applyLinearImpulse(self.speed * self.facing_direction, 0)
+            self.body:applyLinearImpulse(walk_speed * self.facing_direction, 0)
             self.current_animation:setSpeed(math.min(math.abs(x) / 60, 1.4))
         end
     end
@@ -157,7 +162,6 @@ function Monster:new(x, y)
     o.img = love.graphics.newImage("assets/gfx/monster.png")
     o.x = x
     o.y = y
-    o.speed = 3
     o.current_animation = anims.reverant.standing
     o.touching_ground = false
     o.target = nil

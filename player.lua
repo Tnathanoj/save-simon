@@ -1,9 +1,10 @@
 
-jump_power = 40
-crouch_jump_power = jump_power * 1.5
-crouch_jump_time_delay = 0.2
-attack_time = 0.3
-attack_cooldown_time = 0.6
+local jump_power = 40
+local crouch_jump_power = jump_power * 1.5
+local crouch_jump_time_delay = 0.2
+local attack_time = 0.3
+local attack_cooldown_time = 0.6
+local max_walk_speed = 300
 
 Player = {}
 
@@ -94,21 +95,37 @@ function Player:jump()
 
 end
 
+function sign(x)
+    if x < 0 then
+        return -1
+    else
+        return 1
+    end
+end
+
+function clamp_velocity(x_vel, y_vel, body, max_speed)
+    if max_speed < math.abs(x_vel) then
+        body:setLinearVelocity(sign(x_vel) * max_speed, y_vel)
+    end
+end
+
 function Player:update(dt)
     self.x = self.body:getX()
     self.y = self.body:getY()
 
     local x, y = self.body:getLinearVelocity()
 
+    clamp_velocity(x, y, self.body, max_walk_speed)
+
     if self.last_touching_ground < love.timer.getTime() then
         if math.floor(y) == 0 then
+
         else
             self.touching_ground = false
         end
     end
 
     self.current_animation:update(dt)
-
 
     -- Handle attacking animation    
     if love.timer.getTime() < self.last_attack + attack_time then
