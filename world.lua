@@ -1,5 +1,7 @@
 local LightWorld = require "light"
 local sti = require 'sti'
+local monster = require 'monster'
+--require 'monster'
 
 local windowWidth = 640
 local windowHeight = 480
@@ -111,7 +113,7 @@ function new_room(map_file)
 
     for k, obj in ipairs(room.map.layers.Objects.objects) do
         if obj.type == 'monster' then
-            obj.o = Monster:new(obj.x, obj.y)
+            obj.o = monster(obj.x, obj.y, room)
         elseif obj.type == 'door' then
             obj.img = love.graphics.newImage("assets/gfx/door.png")
         elseif obj.type == 'light' then
