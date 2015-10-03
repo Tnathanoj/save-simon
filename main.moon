@@ -101,24 +101,9 @@ class RoomOccupier
 
 
 class Bleeds
-    step: (dt, sender) =>
-        @blood\update dt
-
     dmg: (msg, sender) =>
-        @blood\emit 10
-
-    draw: (msg, sender) =>
-        love.graphics.draw(@blood, @x, @y - 30)
-
-    new: =>
-        bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
-        @blood = love.graphics.newParticleSystem(bloodimg, 100)
-        @blood\setParticleLifetime(0.5, 1) -- Particles live at least 2s and at most 5s.
-        --@blood\setEmissionRate(5)
-        @blood\setSizeVariation(1)
-        @blood\setLinearAcceleration(-100, 60, 100, 60)
-        @blood\setRotation(-4, 4)
-        @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
+        b = Blood()
+        actor.send b.id, 'set_pos', {@x, @y}
 
 
 class Walker
@@ -497,6 +482,48 @@ class Player extends Object
         @hp = 100
 
 
+-- Removes itself pretty soon
+class ShortLived
+    new: =>
+        @short_lived_start_time = love.timer.getTime()
+
+    step: (dt, sender) =>
+        if @short_lived_start_time + 0.3 < love.timer.getTime()
+            actor.send @id, "remove"
+        else
+            @blood\update dt
+
+
+-- Emits blood
+class Bloody 
+    @needs = {'Drawable'}
+
+    step: (dt, sender) =>
+        @blood\update dt
+
+    draw: (msg, sender) =>
+        love.graphics.draw(@blood, @x, @y - 30)
+
+    new: =>
+        bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
+        @blood = love.graphics.newParticleSystem(bloodimg, 100)
+        @blood\setParticleLifetime(0.5, 1) -- Particles live at least 2s and at most 5s.
+        @blood\setEmissionRate(5)
+        @blood\setSizeVariation(1)
+        @blood\setLinearAcceleration(-100, 60, 100, 60)
+        @blood\setRotation(-4, 4)
+        @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
+
+
+-- concrete
+class Blood extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        @\_mixin Bloody
+        @\_mixin Stepper
+        @\_mixin ShortLived
+
+
 class Monster extends Object
     mixins: =>
         @\_mixin RoomOccupier
@@ -681,10 +708,6 @@ love.load = ->
     --m = Monster()
     t = Turkey()
     --i = Imp()
-
-    -- start all actors
-    for key, o in pairs objects
-        o\_start!
 
     actor.send d.id, 'set_pos', {400, 100}
     actor.send d.id, 'cmd_right'

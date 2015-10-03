@@ -88,7 +88,8 @@ do
       table.insert(objects, self)
       self:add_handler("mixin", Object.mixin)
       self:add_handler("mixout", Object.mixout)
-      return self:add_handler("remove", Object.remove)
+      self:add_handler("remove", Object.remove)
+      return self:_start()
     end,
     __base = _base_0,
     __name = "Object"

@@ -49,6 +49,8 @@ class Object
         @\add_handler "mixout", Object.mixout
         @\add_handler "remove", Object.remove
 
+        @\_start!
+
     add_handler: (name, method) =>
         --print 'add_handler', name, method
         if not @handlers[name]

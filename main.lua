@@ -151,26 +151,40 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
-      return self.blood:update(dt)
-    end,
-    dmg = function(self, msg, sender)
-      return self.blood:emit(10)
-    end,
-    draw = function(self, msg, sender)
-      return love.graphics.draw(self.blood, self.x, self.y - 30)
+      return actor.send(self.id, 'dmg', {
+        pts = 1
+      })
     end
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
-    __init = function(self)
-      local bloodimg = love.graphics.newImage("assets/gfx/blood_puffy.png")
-      self.blood = love.graphics.newParticleSystem(bloodimg, 100)
-      self.blood:setParticleLifetime(0.5, 1)
-      self.blood:setSizeVariation(1)
-      self.blood:setLinearAcceleration(-100, 60, 100, 60)
-      self.blood:setRotation(-4, 4)
-      return self.blood:setColors(255, 255, 255, 255, 255, 255, 255, 0)
-    end,
+    __init = function() end,
+    __base = _base_0,
+    __name = "SelfDamager"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  SelfDamager = _class_0
+end
+do
+  local _base_0 = {
+    dmg = function(self, msg, sender)
+      local b = Blood()
+      return actor.send(b.id, 'set_pos', {
+        self.x,
+        self.y
+      })
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
     __base = _base_0,
     __name = "Bleeds"
   }, {
@@ -1130,6 +1144,112 @@ do
   Player = _class_0
 end
 do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      if self.short_lived_start_time + 0.3 < love.timer.getTime() then
+        return actor.send(self.id, "remove")
+      else
+        return self.blood:update(dt)
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.short_lived_start_time = love.timer.getTime()
+    end,
+    __base = _base_0,
+    __name = "ShortLived"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  ShortLived = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      return self.blood:update(dt)
+    end,
+    draw = function(self, msg, sender)
+      return love.graphics.draw(self.blood, self.x, self.y - 30)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      local bloodimg = love.graphics.newImage("assets/gfx/blood_puffy.png")
+      self.blood = love.graphics.newParticleSystem(bloodimg, 100)
+      self.blood:setParticleLifetime(0.5, 1)
+      self.blood:setEmissionRate(5)
+      self.blood:setSizeVariation(1)
+      self.blood:setLinearAcceleration(-100, 60, 100, 60)
+      self.blood:setRotation(-4, 4)
+      return self.blood:setColors(255, 255, 255, 255, 255, 255, 255, 0)
+    end,
+    __base = _base_0,
+    __name = "Bloody"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable'
+  }
+  Bloody = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Bloody)
+      self:_mixin(Stepper)
+      return self:_mixin(ShortLived)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Blood",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Blood = _class_0
+end
+do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
@@ -1681,9 +1801,6 @@ love.load = function()
   local g = Poisonflask()
   local c = Antidoteflask()
   local t = Turkey()
-  for key, o in pairs(objects) do
-    o:_start()
-  end
   actor.send(d.id, 'set_pos', {
     400,
     100
