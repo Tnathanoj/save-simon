@@ -58,8 +58,7 @@ class Damageable
                 table.remove damageables, key
 
     dmg: (msg, sender) =>
-        print 'hit!'
-        print(string.format('msg from:%s msg:%s', sender, msg.pts))
+        --print(string.format('msg from:%s msg:%s', sender, msg.pts))
         @hp -= msg.pts
         if @hp <= 0
             actor.send @id, "die", "you're dead"
@@ -463,6 +462,7 @@ class Player extends Object
         @\_mixin Jumper
         @\_mixin Activator
         @\_mixin Bleeds
+        @\_mixin Smokey
         --@\_mixin Controlled
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
@@ -513,6 +513,27 @@ class Bloody
         @blood\setLinearAcceleration(-100, 60, 100, 60)
         @blood\setRotation(-4, 4)
         @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
+
+
+class Smokey 
+    @needs = {'Drawable'}
+
+    step: (dt, sender) =>
+        @ps\update dt
+        @ps\setPosition @x, @y
+
+    draw: (msg, sender) =>
+        love.graphics.draw(@ps)
+
+    new: =>
+        img = love.graphics.newImage "assets/gfx/smoke_breathable.png"
+        @ps = love.graphics.newParticleSystem(img, 100)
+        @ps\setParticleLifetime(1, 5)
+        @ps\setEmissionRate(5)
+        @ps\setSizeVariation(0.5)
+        @ps\setLinearAcceleration(-20, -20, 20, 20)
+        @ps\setRotation(-10, 10)
+        @ps\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
 
 
 -- concrete

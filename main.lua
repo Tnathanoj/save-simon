@@ -150,30 +150,6 @@ do
 end
 do
   local _base_0 = {
-    step = function(self, dt, sender)
-      return actor.send(self.id, 'dmg', {
-        pts = 1
-      })
-    end
-  }
-  _base_0.__index = _base_0
-  local _class_0 = setmetatable({
-    __init = function() end,
-    __base = _base_0,
-    __name = "SelfDamager"
-  }, {
-    __index = _base_0,
-    __call = function(cls, ...)
-      local _self_0 = setmetatable({}, _base_0)
-      cls.__init(_self_0, ...)
-      return _self_0
-    end
-  })
-  _base_0.__class = _class_0
-  SelfDamager = _class_0
-end
-do
-  local _base_0 = {
     dmg = function(self, msg, sender)
       local b = Blood()
       return actor.send(b.id, 'set_pos', {
@@ -1099,6 +1075,7 @@ do
       self:_mixin(Jumper)
       self:_mixin(Activator)
       self:_mixin(Bleeds)
+      self:_mixin(Smokey)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)
@@ -1208,6 +1185,45 @@ do
     'Drawable'
   }
   Bloody = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      self.ps:update(dt)
+      return self.ps:setPosition(self.x, self.y)
+    end,
+    draw = function(self, msg, sender)
+      return love.graphics.draw(self.ps)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      local img = love.graphics.newImage("assets/gfx/smoke_breathable.png")
+      self.ps = love.graphics.newParticleSystem(img, 100)
+      self.ps:setParticleLifetime(1, 5)
+      self.ps:setEmissionRate(5)
+      self.ps:setSizeVariation(0.5)
+      self.ps:setLinearAcceleration(-20, -20, 20, 20)
+      self.ps:setRotation(-10, 10)
+      return self.ps:setColors(255, 255, 255, 255, 255, 255, 255, 0)
+    end,
+    __base = _base_0,
+    __name = "Smokey"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable'
+  }
+  Smokey = _class_0
 end
 do
   local _parent_0 = Object
