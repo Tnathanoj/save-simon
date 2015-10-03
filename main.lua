@@ -986,9 +986,9 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
-      self.friction = 5
+      self.friction = 6
       newbbox(self)
-      self.walk_speed = 4
+      self.walk_speed = 5
       self.walk_speed_max = 300
     end,
     __base = _base_0,
