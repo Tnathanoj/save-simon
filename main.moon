@@ -111,6 +111,12 @@ class Walker
         else
             actor.send @id, 'enqueue_anim', {anim:@anims['standing']}
 
+        @blood\:emit(1)
+
+    new: =>
+        blood = love.graphics.newImage "assets/gfx/cure.png"
+        @blood = love.graphics.newParticleSystem blood, 100
+
 
 class Croucher
     @needs = {'Animated'}
