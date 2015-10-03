@@ -1,7 +1,5 @@
 local LightWorld = require "light"
 local sti = require 'sti'
-local monster = require 'monster'
---require 'monster'
 
 local windowWidth = 640
 local windowHeight = 480
@@ -29,9 +27,8 @@ function item_with_key_value(tbl, key, val)
     return nil
 end
 
-function new_room(map_file)
+function new_room(map_file, object_create)
     local room = {}
-    current_room = room
     room.path = map_file
     room.map = sti.new(map_file)
     room.world = love.physics.newWorld(0, 9.81 * 64, true)
@@ -112,25 +109,14 @@ function new_room(map_file)
     shuffleTable(room.map.layers.Objects.objects)
 
     for k, obj in ipairs(room.map.layers.Objects.objects) do
-        if obj.type == 'monster' then
-            obj.o = monster(obj.x, obj.y, room)
-        elseif obj.type == 'door' then
-            obj.img = love.graphics.newImage("assets/gfx/door.png")
-        elseif obj.type == 'light' then
+        object_create(obj, room)
+        if obj.type == 'light' then
             obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
             obj.light:setRange(obj.properties.range or 300)
             if obj.properties.colour then
                 local r, g, b = string.match(obj.properties.colour, "(..)(..)(..)")
                 obj.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
             end
-        elseif obj.type == 'upstairs' then
-            obj.img = love.graphics.newImage("assets/gfx/upstairs.png")
-        elseif obj.type == 'downstairs' then
-            obj.img = love.graphics.newImage("assets/gfx/downstairs.png")
-        elseif obj.type == 'goldbar' then
-            obj.img = love.graphics.newImage("assets/gfx/goldbar.png")
-            obj.light = room.lightWorld:newLight(obj.x+16, obj.y+16, 255, 200, 0)
-            obj.light:setRange(20)
         elseif obj.type == 'vendingmachine' then
             obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
             --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
@@ -154,21 +140,7 @@ function new_room(map_file)
     end
 
     function spriteLayer:draw()
-        for _, obj in pairs(self.objects) do
-            if obj.type == 'monster' then
-                obj.o:draw()
-            elseif obj.type == 'door' and obj.target_door then
-                love.graphics.draw(obj.img, obj.x, obj.y)
-            elseif obj.type == 'goldbar' then
-                love.graphics.draw(obj.img, obj.x, obj.y)
-            elseif obj.type == 'vendingmachine' then
-                love.graphics.draw(obj.img, obj.x, obj.y)
-            elseif obj.type == 'upstairs' then
-                love.graphics.draw(obj.img, obj.x, obj.y)
-            elseif obj.type == 'downstairs' then
-                love.graphics.draw(obj.img, obj.x, obj.y)
-            end
-        end
+
     end
 
     return room
@@ -253,7 +225,7 @@ function connect_doors(levels)
     end
 end
 
-function load_levels()
+function load_levels(object_create)
     local levels = {}
     local files = love.filesystem.getDirectoryItems("assets")
     for k, file in ipairs(files) do
@@ -264,7 +236,7 @@ function load_levels()
                 levels[room_level] = {rooms={}}
             end
             print("loaded " .. room_level .. "_" .. room_name)
-            levels[room_level].rooms[room_name] = new_room("assets/level" .. room_level .. "_" .. room_name)
+            levels[room_level].rooms[room_name] = new_room("assets/level" .. room_level .. "_" .. room_name, object_create)
         end
     end
 
