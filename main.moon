@@ -69,6 +69,14 @@ class Damageable
         @hp = @hp_max if @hp_max < @hp
 
 
+class PainfulTouch
+    @needs = {'Touchable'}
+
+    touch: (msg, sender) =>
+        actor.send msg, "mixout", "Poisoned"
+
+
+
 class RoomOccupier
     new: =>
         @x = 0
@@ -520,7 +528,7 @@ class Smokey
 
     step: (dt, sender) =>
         @ps\update dt
-        @ps\setPosition @x, @y
+        @ps\setPosition @x, @y + 10
 
     draw: (msg, sender) =>
         love.graphics.draw(@ps)
@@ -528,11 +536,12 @@ class Smokey
     new: =>
         img = love.graphics.newImage "assets/gfx/smoke_breathable.png"
         @ps = love.graphics.newParticleSystem(img, 100)
-        @ps\setParticleLifetime(1, 5)
+        @ps\setParticleLifetime(1, 1)
         @ps\setEmissionRate(5)
-        @ps\setSizeVariation(0.5)
+        --@ps\setSizeVariation(0.9)
+        @ps\setSizes(0.5, 0.25, 0.12, 0.06)
         @ps\setLinearAcceleration(-20, -20, 20, 20)
-        @ps\setRotation(-10, 10)
+        @ps\setRotation(-20, 20)
         @ps\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
 
 
@@ -675,6 +684,14 @@ class Camera extends Object
     new: =>
         @x = 0
         @y = 100
+
+
+class Spike extends Object
+    mixins: =>
+        @\_mixin PainfulTouch
+        @\_mixin RoomOccupier
+        @\_mixin Sprite
+        @sprite = love.graphics.newImage "assets/gfx/spike.png"
 
 
 love.mousereleased = (x, y, button) ->

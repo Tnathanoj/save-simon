@@ -104,6 +104,32 @@ do
 end
 do
   local _base_0 = {
+    touch = function(self, msg, sender)
+      return actor.send(msg, "mixout", "Poisoned")
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "PainfulTouch"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Touchable'
+  }
+  PainfulTouch = _class_0
+end
+do
+  local _base_0 = {
     die = function(self, msg, sender) end,
     set_pos = function(self, msg, sender)
       self.x = msg[1]
@@ -1188,7 +1214,7 @@ do
   local _base_0 = {
     step = function(self, dt, sender)
       self.ps:update(dt)
-      return self.ps:setPosition(self.x, self.y)
+      return self.ps:setPosition(self.x, self.y + 10)
     end,
     draw = function(self, msg, sender)
       return love.graphics.draw(self.ps)
@@ -1199,11 +1225,11 @@ do
     __init = function(self)
       local img = love.graphics.newImage("assets/gfx/smoke_breathable.png")
       self.ps = love.graphics.newParticleSystem(img, 100)
-      self.ps:setParticleLifetime(1, 5)
+      self.ps:setParticleLifetime(1, 1)
       self.ps:setEmissionRate(5)
-      self.ps:setSizeVariation(0.5)
+      self.ps:setSizes(0.5, 0.25, 0.12, 0.06)
       self.ps:setLinearAcceleration(-20, -20, 20, 20)
-      self.ps:setRotation(-10, 10)
+      self.ps:setRotation(-20, 20)
       return self.ps:setColors(255, 255, 255, 255, 255, 255, 255, 0)
     end,
     __base = _base_0,
@@ -1769,6 +1795,46 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Camera = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(PainfulTouch)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Sprite)
+      self.sprite = love.graphics.newImage("assets/gfx/spike.png")
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Spike",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Spike = _class_0
 end
 love.mousereleased = function(x, y, button)
   if button == "l" then
