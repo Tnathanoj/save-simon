@@ -100,6 +100,27 @@ class RoomOccupier
             --camera:setX(x - x % windowWidth)
 
 
+class Bleeds
+    step: (dt, sender) =>
+        @blood\update dt
+
+    dmg: (msg, sender) =>
+        @blood\emit 10
+
+    draw: (msg, sender) =>
+        love.graphics.draw(@blood, @x, @y - 30)
+
+    new: =>
+        bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
+        @blood = love.graphics.newParticleSystem(bloodimg, 100)
+        @blood\setParticleLifetime(0.5, 1) -- Particles live at least 2s and at most 5s.
+        --@blood\setEmissionRate(5)
+        @blood\setSizeVariation(1)
+        @blood\setLinearAcceleration(-100, 60, 100, 60)
+        @blood\setRotation(-4, 4)
+        @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
+
+
 class Walker
     @needs = {'Animated'}
 
@@ -110,12 +131,6 @@ class Walker
             --@curr_anim\setSpeed(math.min(math.abs(@x_vel) / 60, 1.4))
         else
             actor.send @id, 'enqueue_anim', {anim:@anims['standing']}
-
-        @blood\:emit(1)
-
-    new: =>
-        blood = love.graphics.newImage "assets/gfx/cure.png"
-        @blood = love.graphics.newParticleSystem blood, 100
 
 
 class Croucher
@@ -462,6 +477,7 @@ class Player extends Object
         @\_mixin BBoxed
         @\_mixin Jumper
         @\_mixin Activator
+        @\_mixin Bleeds
         --@\_mixin Controlled
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
@@ -493,6 +509,7 @@ class Monster extends Object
         @\_mixin Attacker
         @\_mixin Walker
         @\_mixin BBoxed
+        @\_mixin Bleeds
         @anims['walking'] = anim "assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0
         @anims["walking"]\setMode('once')
         @anims["standing"] = anim "assets/gfx/reverant_standing.png", 80, 103, .15, 1, 1
@@ -507,11 +524,6 @@ class Monster extends Object
 
     step: (dt, sender) =>
         actor.send @id, 'cmd_attack'
-        @blood\:emit(1)
-
-    new: =>
-        blood = love.graphics.newImage "assets/gfx/cure.png"
-        @blood = love.graphics.newParticleSystem blood, 100
 
 
 class Imp extends Object

@@ -151,6 +151,42 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
+      return self.blood:update(dt)
+    end,
+    dmg = function(self, msg, sender)
+      return self.blood:emit(10)
+    end,
+    draw = function(self, msg, sender)
+      return love.graphics.draw(self.blood, self.x, self.y - 30)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      local bloodimg = love.graphics.newImage("assets/gfx/blood_puffy.png")
+      self.blood = love.graphics.newParticleSystem(bloodimg, 100)
+      self.blood:setParticleLifetime(0.5, 1)
+      self.blood:setSizeVariation(1)
+      self.blood:setLinearAcceleration(-100, 60, 100, 60)
+      self.blood:setRotation(-4, 4)
+      return self.blood:setColors(255, 255, 255, 255, 255, 255, 255, 0)
+    end,
+    __base = _base_0,
+    __name = "Bleeds"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Bleeds = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
       if 80 < math.abs(self.x_vel) then
         return actor.send(self.id, 'enqueue_anim', {
           anim = self.anims['walking']
@@ -1048,6 +1084,7 @@ do
       self:_mixin(BBoxed)
       self:_mixin(Jumper)
       self:_mixin(Activator)
+      self:_mixin(Bleeds)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)
@@ -1105,6 +1142,7 @@ do
       self:_mixin(Attacker)
       self:_mixin(Walker)
       self:_mixin(BBoxed)
+      self:_mixin(Bleeds)
       self.anims['walking'] = anim("assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/reverant_standing.png", 80, 103, .15, 1, 1)
