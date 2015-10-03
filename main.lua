@@ -69,8 +69,6 @@ do
       end
     end,
     dmg = function(self, msg, sender)
-      print('hit!')
-      print(string.format('msg from:%s msg:%s', sender, msg.pts))
       self.hp = self.hp - msg.pts
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
