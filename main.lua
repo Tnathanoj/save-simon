@@ -1001,18 +1001,21 @@ end
 do
   local _base_0 = {
     cmd_right = function(self, msg, sender)
-      self.x_vel = self.hspeed
-      return actor.send(self.id, 'set_anim', 'walking')
+      if self.touching_ground then
+        return actor.send(self.id, 'move_right', self.walk_speed)
+      end
     end,
     cmd_left = function(self, msg, sender)
-      self.x_vel = self.hspeed * -1
-      return actor.send(self.id, 'set_anim', 'walking')
+      if self.touching_ground then
+        return actor.send(self.id, 'move_left', self.walk_speed)
+      end
     end
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
       self.hspeed = 200
+      self.walk_speed = 150
     end,
     __base = _base_0,
     __name = "Controlled"
@@ -1062,17 +1065,13 @@ do
       self.x = self.body:getX()
       self.y = self.body:getY()
       self.x_vel, self.y_vel = self.body:getLinearVelocity()
-      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.walk_speed_max)
+      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.speed_max)
     end,
-    cmd_right = function(self, msg, sender)
-      if self.touching_ground then
-        return self.body:applyLinearImpulse(self.walk_speed, 0)
-      end
+    move_right = function(self, speed, sender)
+      return self.body:applyLinearImpulse(speed, 0)
     end,
-    cmd_left = function(self, msg, sender)
-      if self.touching_ground then
-        return self.body:applyLinearImpulse(-self.walk_speed, 0)
-      end
+    move_left = function(self, speed, sender)
+      return self.body:applyLinearImpulse(-speed, 0)
     end,
     set_pos = function(self, msg, sender)
       self.body:setX(msg[1])
@@ -1091,8 +1090,7 @@ do
     __init = function(self)
       self.friction = 6
       newbbox(self)
-      self.walk_speed = 150
-      self.walk_speed_max = 300
+      self.speed_max = 300
     end,
     __base = _base_0,
     __name = "BBoxed"
@@ -1197,6 +1195,7 @@ do
       self:_mixin(Activator)
       self:_mixin(Bleeds)
       self:_mixin(RunSmokey)
+      self:_mixin(Controlled)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)

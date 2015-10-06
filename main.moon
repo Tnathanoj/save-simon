@@ -387,16 +387,20 @@ class Activator
 
 class Controlled
     @needs = {'Animated', 'Stepper'}
+
     new: =>
         @hspeed = 200
+        @walk_speed = 150
 
     cmd_right: (msg, sender) =>
-        @x_vel = @hspeed
-        actor.send @id, 'set_anim', 'walking'
+        if @touching_ground
+            actor.send @id, 'move_right', @walk_speed
 
     cmd_left: (msg, sender) =>
-        @x_vel = @hspeed * -1
-        actor.send @id, 'set_anim', 'walking'
+        if @touching_ground
+            actor.send @id, 'move_left', @walk_speed
+
+
 
 
 sign = (x) ->
@@ -424,23 +428,20 @@ class BBoxed
     new: =>
         @friction = 6
         newbbox(@)
-        @walk_speed = 150
-        @walk_speed_max = 300
+        @speed_max = 300
 
     step: (dt, sender) =>
         @x = @body\getX!
         @y = @body\getY!
 
         @x_vel, @y_vel = @body\getLinearVelocity()
-        clamp_velocity(@x_vel, @y_vel, @body, @walk_speed_max)
+        clamp_velocity(@x_vel, @y_vel, @body, @speed_max)
 
-    cmd_right: (msg, sender) =>
-        if @touching_ground
-            @body\applyLinearImpulse(@walk_speed, 0)
+    move_right: (speed, sender) =>
+        @body\applyLinearImpulse(speed, 0)
 
-    cmd_left: (msg, sender) =>
-        if @touching_ground
-            @body\applyLinearImpulse(-@walk_speed, 0)
+    move_left: (speed, sender) =>
+        @body\applyLinearImpulse(-speed, 0)
 
     set_pos: (msg, sender) =>
         @body\setX msg[1]
@@ -507,7 +508,7 @@ class Player extends Object
         @\_mixin Activator
         @\_mixin Bleeds
         @\_mixin RunSmokey
-        --@\_mixin Controlled
+        @\_mixin Controlled
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
         --@\_mixin Falls
