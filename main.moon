@@ -73,8 +73,7 @@ class PainfulTouch
     @needs = {'Touchable'}
 
     touch: (msg, sender) =>
-        actor.send msg, "mixout", "Poisoned"
-
+        actor.send sender.id, 'dmg', {pts: @dmg_pts}
 
 
 class RoomOccupier
@@ -545,6 +544,32 @@ class Smokey
         @ps\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
 
 
+class Ladderable
+    touch: (msg, sender) =>
+        --actor.send msg, "mixout", "Poisoned"
+        @body\applyLinearImpulse 0, -5
+
+
+class Ladder extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        @\_mixin BBoxed
+        @\_mixin Touchable
+        @\_mixin Ladderable
+
+--    new: =>
+--        @last_jump_time = 0
+
+--    cmd_up: (msg, sender) =>
+--        --if self.touching_ground and self.last_jump_time + 1 < love.timer.getTime() then
+--        if @last_jump_time + 1 < love.timer.getTime()
+--            @last_jump_time = love.timer.getTime()
+--            @touching_ground = false
+--            @body\applyLinearImpulse 0, -20
+
+
+
+
 -- concrete
 class Blood extends Object
     mixins: =>
@@ -692,6 +717,7 @@ class Spike extends Object
         @\_mixin RoomOccupier
         @\_mixin Sprite
         @sprite = love.graphics.newImage "assets/gfx/spike.png"
+        @dmg_pts = 10000
 
 
 love.mousereleased = (x, y, button) ->
