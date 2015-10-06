@@ -105,7 +105,9 @@ end
 do
   local _base_0 = {
     touch = function(self, msg, sender)
-      return actor.send(msg, "mixout", "Poisoned")
+      return actor.send(sender.id, 'dmg', {
+        pts = self.dmg_pts
+      })
     end
   }
   _base_0.__index = _base_0
@@ -231,6 +233,53 @@ do
     'Animated'
   }
   Walker = _class_0
+end
+do
+  local _parent_0 = Walker
+  local _base_0 = {
+    step = function(self, dt, sender)
+      if not self.touching_ground then
+        return actor.send(self.id, 'enqueue_anim', {
+          anim = self.anims['jumping']
+        })
+      else
+        return _parent_0.step(self, dt, sender)
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "WalkerJumper",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Animated'
+  }
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  WalkerJumper = _class_0
 end
 do
   local _base_0 = {
@@ -1013,13 +1062,24 @@ do
       self.x = self.body:getX()
       self.y = self.body:getY()
       self.x_vel, self.y_vel = self.body:getLinearVelocity()
-      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.walk_speed_max)
+      clamp_velocity(self.x_vel, self.y_vel, self.body, self.walk_speed_max)
+      local contacts = self.body:getContactList()
+      self.touching_ground = false
+      for _, o in pairs(contacts) do
+        if o:isTouching() then
+          self.touching_ground = true
+        end
+      end
     end,
     cmd_right = function(self, msg, sender)
-      return self.body:applyLinearImpulse(self.walk_speed, 0)
+      if self.touching_ground then
+        return self.body:applyLinearImpulse(self.walk_speed, 0)
+      end
     end,
     cmd_left = function(self, msg, sender)
-      return self.body:applyLinearImpulse(-self.walk_speed, 0)
+      if self.touching_ground then
+        return self.body:applyLinearImpulse(-self.walk_speed, 0)
+      end
     end,
     set_pos = function(self, msg, sender)
       self.body:setX(msg[1])
@@ -1057,10 +1117,9 @@ end
 do
   local _base_0 = {
     cmd_up = function(self, msg, sender)
-      if self.last_jump_time + 1 < love.timer.getTime() then
+      if self.touching_ground and self.last_jump_time + self.jump_cooldown < love.timer.getTime() then
         self.last_jump_time = love.timer.getTime()
-        self.touching_ground = false
-        return self.body:applyLinearImpulse(0, -20)
+        return self.body:applyLinearImpulse(0, self.jump_impulse)
       end
     end
   }
@@ -1068,6 +1127,8 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.last_jump_time = 0
+      self.jump_impulse = -30
+      self.jump_cooldown = 0.3
     end,
     __base = _base_0,
     __name = "Jumper"
@@ -1090,7 +1151,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(MouseTeleporter)
       self:_mixin(Animated)
-      self:_mixin(Walker)
+      self:_mixin(WalkerJumper)
       self:_mixin(Croucher)
       self:_mixin(Attacker)
       self:_mixin(FacesDirectionByVelocity)
@@ -1108,6 +1169,8 @@ do
       self.anims["attacking"]:setMode('once')
       self.anims["crouching"] = anim("assets/gfx/mancrouching.png", 80, 103, 0.5, 1, 0)
       self.anims["crouching"]:setMode('once')
+      self.anims['jumping'] = anim("assets/gfx/manjumping.png", 80, 103, .175, 1, 0)
+      self.anims["jumping"]:setMode('once')
       actor.send(self.id, 'set_anim', 'walking')
       self.room = current_room
       self.faction = 'good'
@@ -1276,7 +1339,6 @@ do
   local _base_0 = {
     mixins = function(self)
       self:_mixin(RoomOccupier)
-      self:_mixin(BBoxed)
       self:_mixin(Touchable)
       return self:_mixin(Ladderable)
     end
@@ -1866,6 +1928,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Sprite)
       self.sprite = love.graphics.newImage("assets/gfx/spike.png")
+      self.dmg_pts = 10000
     end
   }
   _base_0.__index = _base_0
@@ -1920,6 +1983,7 @@ on_level_object_creation = function(o, room)
   if _G[name] then
     local n = _G[name]()
     n.world_obj = o
+    n.name = name
     return actor.send(n.id, 'set_pos', {
       o.x,
       o.y

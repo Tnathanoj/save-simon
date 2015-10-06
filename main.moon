@@ -124,6 +124,16 @@ class Walker
             actor.send @id, 'enqueue_anim', {anim:@anims['standing']}
 
 
+class WalkerJumper extends Walker
+    @needs = {'Animated'}
+
+    step: (dt, sender) =>
+        if not @touching_ground
+            actor.send @id, 'enqueue_anim', {anim:@anims['jumping']}
+        else
+            super dt, sender
+
+
 class Croucher
     @needs = {'Animated'}
 
@@ -422,11 +432,20 @@ class BBoxed
         @x_vel, @y_vel = @body\getLinearVelocity()
         clamp_velocity(@x_vel, @y_vel, @body, @walk_speed_max)
 
+        -- Check if we are touching the groudn
+        contacts = @body\getContactList()
+        @touching_ground = false
+        for _, o in pairs contacts
+            if o\isTouching()
+                @touching_ground = true
+
     cmd_right: (msg, sender) =>
-        @body\applyLinearImpulse(@walk_speed, 0)
+        if @touching_ground
+            @body\applyLinearImpulse(@walk_speed, 0)
 
     cmd_left: (msg, sender) =>
-        @body\applyLinearImpulse(-@walk_speed, 0)
+        if @touching_ground
+            @body\applyLinearImpulse(-@walk_speed, 0)
 
     set_pos: (msg, sender) =>
         @body\setX msg[1]
@@ -444,13 +463,14 @@ class BBoxed
 class Jumper
     new: =>
         @last_jump_time = 0
+        @jump_impulse = -30
+        @jump_cooldown = 0.3
 
     cmd_up: (msg, sender) =>
         --if self.touching_ground and self.last_jump_time + 1 < love.timer.getTime() then
-        if @last_jump_time + 1 < love.timer.getTime()
+        if @touching_ground and @last_jump_time + @jump_cooldown < love.timer.getTime()
             @last_jump_time = love.timer.getTime()
-            @touching_ground = false
-            @body\applyLinearImpulse 0, -20
+            @body\applyLinearImpulse 0, @jump_impulse
 
 
 -- concrete
@@ -460,7 +480,7 @@ class Player extends Object
         @\_mixin RoomOccupier
         @\_mixin MouseTeleporter
         @\_mixin Animated
-        @\_mixin Walker
+        @\_mixin WalkerJumper
         @\_mixin Croucher
         @\_mixin Attacker
         @\_mixin FacesDirectionByVelocity
@@ -482,6 +502,8 @@ class Player extends Object
         @anims["attacking"]\setMode('once')
         @anims["crouching"] = anim "assets/gfx/mancrouching.png", 80, 103, 0.5, 1, 0
         @anims["crouching"]\setMode('once')
+        @anims['jumping'] = anim "assets/gfx/manjumping.png", 80, 103, .175, 1, 0
+        @anims["jumping"]\setMode('once')
         --actor.send @id, 'enqueue_anim', 'walking'
         actor.send @id, 'set_anim', 'walking'
         @room = current_room
@@ -553,7 +575,7 @@ class Ladderable
 class Ladder extends Object
     mixins: =>
         @\_mixin RoomOccupier
-        @\_mixin BBoxed
+--        @\_mixin BBoxed
         @\_mixin Touchable
         @\_mixin Ladderable
 
@@ -741,6 +763,7 @@ on_level_object_creation = (o, room) ->
     if _G[name]
         n = _G[name]()
         n.world_obj = o
+        n.name = name
         actor.send n.id, 'set_pos', {o.x, o.y}
 
 game_over_font = {}
