@@ -17,7 +17,7 @@ newbbox = function(o)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  return o.body:setFixedRotation(true)
+  return o.body:setMass(10)
 end
 local steppers = { }
 do
@@ -1062,14 +1062,7 @@ do
       self.x = self.body:getX()
       self.y = self.body:getY()
       self.x_vel, self.y_vel = self.body:getLinearVelocity()
-      clamp_velocity(self.x_vel, self.y_vel, self.body, self.walk_speed_max)
-      local contacts = self.body:getContactList()
-      self.touching_ground = false
-      for _, o in pairs(contacts) do
-        if o:isTouching() then
-          self.touching_ground = true
-        end
-      end
+      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.walk_speed_max)
     end,
     cmd_right = function(self, msg, sender)
       if self.touching_ground then
@@ -1098,7 +1091,7 @@ do
     __init = function(self)
       self.friction = 6
       newbbox(self)
-      self.walk_speed = 5
+      self.walk_speed = 150
       self.walk_speed_max = 300
     end,
     __base = _base_0,
@@ -1116,10 +1109,48 @@ do
 end
 do
   local _base_0 = {
+    step = function(self, dt, sender)
+      local contacts = self.body:getContactList()
+      for _, o in pairs(contacts) do
+        if o:isTouching() then
+          if not self.touching_ground then
+            actor.send(self.id, 'touch_ground')
+          end
+          self.touching_ground = true
+          return 
+        end
+      end
+      self.touching_ground = false
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.touching_ground = false
+    end,
+    __base = _base_0,
+    __name = "TouchingGroundChecker"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'BBoxed'
+  }
+  TouchingGroundChecker = _class_0
+end
+do
+  local _base_0 = {
     cmd_up = function(self, msg, sender)
       if self.touching_ground and self.last_jump_time + self.jump_cooldown < love.timer.getTime() then
         self.last_jump_time = love.timer.getTime()
-        return self.body:applyLinearImpulse(0, self.jump_impulse)
+        return self.body:applyLinearImpulse(0, -self.jump_impulse)
       end
     end
   }
@@ -1127,7 +1158,7 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.last_jump_time = 0
-      self.jump_impulse = -30
+      self.jump_impulse = 3000
       self.jump_cooldown = 0.3
     end,
     __base = _base_0,
@@ -1141,6 +1172,10 @@ do
     end
   })
   _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'TouchingGroundChecker'
+  }
   Jumper = _class_0
 end
 do
@@ -1157,10 +1192,11 @@ do
       self:_mixin(FacesDirectionByVelocity)
       self:_mixin(Toucher)
       self:_mixin(BBoxed)
+      self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
       self:_mixin(Bleeds)
-      self:_mixin(Smokey)
+      self:_mixin(RunSmokey)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)
@@ -1272,6 +1308,47 @@ do
     'Drawable'
   }
   Bloody = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      self.ps:update(dt)
+      return self.ps:setPosition(self.x, self.y + 10)
+    end,
+    draw = function(self, msg, sender)
+      return love.graphics.draw(self.ps)
+    end,
+    touch_ground = function(self, msg, sender)
+      return self.ps:emit(1)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      local img = love.graphics.newImage("assets/gfx/smoke_breathable.png")
+      self.ps = love.graphics.newParticleSystem(img, 100)
+      self.ps:setParticleLifetime(1, 1)
+      self.ps:setSizes(0.5, 0.25, 0.12, 0.06)
+      self.ps:setLinearAcceleration(-20, -20, 20, 20)
+      self.ps:setRotation(-20, 20)
+      return self.ps:setColors(255, 255, 255, 255, 255, 255, 255, 0)
+    end,
+    __base = _base_0,
+    __name = "RunSmokey"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable'
+  }
+  RunSmokey = _class_0
 end
 do
   local _base_0 = {
@@ -2000,7 +2077,7 @@ love.load = function()
   love.graphics.setFont(font)
   love.graphics.setBackgroundColor(0, 0, 0)
   love.window.setMode(windowWidth, windowHeight)
-  love.physics.setMeter(64)
+  love.physics.setMeter(32)
   levels = load_levels(on_level_object_creation)
   current_room = levels[1].rooms["start"]
   d = Player()

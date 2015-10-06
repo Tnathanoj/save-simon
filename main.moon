@@ -22,7 +22,9 @@ newbbox = (o) ->
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
-    o.body\setFixedRotation(true)
+    --o.body\setFixedRotation(False)
+    o.body\setMass(10)
+
 
 steppers = {}
 class Stepper
@@ -422,7 +424,7 @@ class BBoxed
     new: =>
         @friction = 6
         newbbox(@)
-        @walk_speed = 5
+        @walk_speed = 150
         @walk_speed_max = 300
 
     step: (dt, sender) =>
@@ -431,13 +433,6 @@ class BBoxed
 
         @x_vel, @y_vel = @body\getLinearVelocity()
         clamp_velocity(@x_vel, @y_vel, @body, @walk_speed_max)
-
-        -- Check if we are touching the groudn
-        contacts = @body\getContactList()
-        @touching_ground = false
-        for _, o in pairs contacts
-            if o\isTouching()
-                @touching_ground = true
 
     cmd_right: (msg, sender) =>
         if @touching_ground
@@ -459,18 +454,39 @@ class BBoxed
         @body\destroy!
 
 
+-- Checks if we are touching the ground or not
+class TouchingGroundChecker
+    @needs = {'BBoxed'}
+
+    new: =>
+        @touching_ground = false
+
+    step: (dt, sender) =>
+        -- Check if we are touching the groudn
+        contacts = @body\getContactList()
+        for _, o in pairs contacts
+            if o\isTouching()
+                if not @touching_ground
+                    actor.send @id, 'touch_ground'
+                @touching_ground = true
+                return
+        @touching_ground = false
+
+
 -- Jumps if up is pushed
 class Jumper
+    @needs = {'TouchingGroundChecker'}
+    
     new: =>
         @last_jump_time = 0
-        @jump_impulse = -30
+        @jump_impulse = 3000
         @jump_cooldown = 0.3
 
     cmd_up: (msg, sender) =>
         --if self.touching_ground and self.last_jump_time + 1 < love.timer.getTime() then
         if @touching_ground and @last_jump_time + @jump_cooldown < love.timer.getTime()
             @last_jump_time = love.timer.getTime()
-            @body\applyLinearImpulse 0, @jump_impulse
+            @body\applyLinearImpulse 0, -@jump_impulse
 
 
 -- concrete
@@ -486,10 +502,11 @@ class Player extends Object
         @\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
         @\_mixin BBoxed
+        @\_mixin TouchingGroundChecker
         @\_mixin Jumper
         @\_mixin Activator
         @\_mixin Bleeds
-        @\_mixin Smokey
+        @\_mixin RunSmokey
         --@\_mixin Controlled
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
@@ -542,6 +559,30 @@ class Bloody
         @blood\setLinearAcceleration(-100, 60, 100, 60)
         @blood\setRotation(-4, 4)
         @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
+
+
+class RunSmokey 
+    @needs = {'Drawable'}
+
+    step: (dt, sender) =>
+        @ps\update dt
+        @ps\setPosition @x, @y + 10
+
+    draw: (msg, sender) =>
+        love.graphics.draw(@ps)
+
+    touch_ground: (msg, sender) =>
+        @ps\emit 1
+
+    new: =>
+        img = love.graphics.newImage "assets/gfx/smoke_breathable.png"
+        @ps = love.graphics.newParticleSystem(img, 100)
+        @ps\setParticleLifetime(1, 1)
+        --@ps\setSizeVariation(0.9)
+        @ps\setSizes(0.5, 0.25, 0.12, 0.06)
+        @ps\setLinearAcceleration(-20, -20, 20, 20)
+        @ps\setRotation(-20, 20)
+        @ps\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
 
 
 class Smokey 
@@ -781,7 +822,7 @@ love.load = ->
     love.graphics.setBackgroundColor(0, 0, 0)
     love.window.setMode(windowWidth, windowHeight)
 
-    love.physics.setMeter(64)
+    love.physics.setMeter(32)
 
     levels = load_levels(on_level_object_creation)
 
