@@ -51,6 +51,8 @@ class Object
 
         @\_start!
 
+        actor.send @id, 'init'
+
     add_handler: (name, method) =>
         --print 'add_handler', name, method
         if not @handlers[name]

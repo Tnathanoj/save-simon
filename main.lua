@@ -13,18 +13,18 @@ local current_room = { }
 local newbbox
 newbbox = function(o)
   o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-  o.shape = love.physics.newCircleShape(10)
+  o.shape = love.physics.newCircleShape(20)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  o.body:setMass(5)
-  o.body2 = { }
-  o.body2.body = love.physics.newBody(current_room.world, o.x, o.y - 50, "dynamic")
-  o.body2.shape = love.physics.newRectangleShape(0, 0, 10, 45)
-  o.body2.fixture = love.physics.newFixture(o.body2.body, o.body2.shape, 1)
-  o.body2.fixture:setUserData(o)
-  love.physics.newPrismaticJoint(o.body, o.body2.body, o.x, o.y - 50, 0, -1, false)
-  return o.body2.body:setFixedRotation(true)
+  return o.body:setMass(5)
+end
+local newbbox_prismatic
+newbbox_prismatic = function(o)
+  o.body2 = love.physics.newBody(current_room.world, o.x, o.y - 40, "dynamic")
+  o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
+  o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
+  return o.body2:setFixedRotation(true)
 end
 local steppers = { }
 do
@@ -966,7 +966,7 @@ do
         self.y - 60
       })
       return actor.send(b.id, 'set_vel', {
-        2000 * self.facing_direction,
+        3000 * self.facing_direction,
         0
       })
     end
@@ -1114,6 +1114,62 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
+      if not self.prismatic_connected then
+        self.prismatic_connected = true
+        return love.physics.newPrismaticJoint(self.body, self.body2, self.x, self.y - 50, 0, -1, false)
+      end
+    end,
+    set_vel = function(self, msg, sender)
+      return self.body2:applyLinearImpulse(msg[1], msg[2])
+    end,
+    move_right = function(self, speed, sender)
+      return self.body2:applyLinearImpulse(speed, 0)
+    end,
+    move_left = function(self, speed, sender)
+      return self.body2:applyLinearImpulse(-speed, 0)
+    end,
+    set_pos = function(self, msg, sender)
+      self.body2:setX(msg[1])
+      return self.body2:setY(msg[2])
+    end,
+    set_room = function(self, msg, sender)
+      self.body2:destroy()
+      newbbox_prismatic(self)
+      self.prismatic_connected = false
+    end,
+    remove = function(self, msg, sender)
+      return self.body2:destroy()
+    end,
+    draw = function(self, dt, sender)
+      return love.graphics.polygon("fill", self.body2:getWorldPoints(self.shape2:getPoints()))
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.prismatic_connected = false
+      return newbbox_prismatic(self)
+    end,
+    __base = _base_0,
+    __name = "PlayerBBoxed"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'BBoxed'
+  }
+  PlayerBBoxed = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
       self.x = self.body:getX()
       self.y = self.body:getY()
       self.x_vel, self.y_vel = self.body:getLinearVelocity()
@@ -1243,7 +1299,7 @@ do
       self:_mixin(Croucher)
       self:_mixin(Attacker)
       self:_mixin(Toucher)
-      self:_mixin(BBoxed)
+      self:_mixin(PlayerBBoxed)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
@@ -1598,7 +1654,7 @@ do
       self:_mixin(Toucher)
       self:_mixin(Attacker)
       self:_mixin(Walker)
-      self:_mixin(BBoxed)
+      self:_mixin(PlayerBBoxed)
       self:_mixin(Bleeds)
       self.anims['walking'] = anim("assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')

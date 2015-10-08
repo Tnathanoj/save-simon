@@ -32,7 +32,7 @@ function new_room(map_file, object_create)
     room.path = map_file
     room.map = sti.new(map_file)
     room.world = love.physics.newWorld(0, 9.81 * 64, true)
-    room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
+    --room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
     room.collision = room.map:initWorldCollision(room.world)
 
     -- create light world

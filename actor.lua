@@ -89,7 +89,8 @@ do
       self:add_handler("mixin", Object.mixin)
       self:add_handler("mixout", Object.mixout)
       self:add_handler("remove", Object.remove)
-      return self:_start()
+      self:_start()
+      return actor.send(self.id, 'init')
     end,
     __base = _base_0,
     __name = "Object"

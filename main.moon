@@ -18,22 +18,20 @@ current_room = {}
 
 newbbox = (o) ->
     o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-    o.shape = love.physics.newCircleShape(10)
+    o.shape = love.physics.newCircleShape(20)
+    --shape = love.physics.newRectangleShape(0, 0, 20, 50)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
-    --o.body\setFixedRotation(False)
+    --o.body\setFixedRotation(true)
     o.body\setMass(5)
 
-    o.body2 = {}
-    o.body2.body = love.physics.newBody(current_room.world, o.x, o.y - 50, "dynamic")
-    o.body2.shape = love.physics.newRectangleShape(0, 0, 10, 45)
-    o.body2.fixture = love.physics.newFixture(o.body2.body, o.body2.shape, 1)
-    o.body2.fixture\setUserData(o)
-    love.physics.newPrismaticJoint(o.body, o.body2.body, o.x, o.y - 50, 0, -1, false)
-    o.body2.body\setFixedRotation(true)
-    --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
-    --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
+
+newbbox_prismatic = (o) ->
+  o.body2 = love.physics.newBody(current_room.world, o.x, o.y - 40, "dynamic")
+  o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
+  o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
+  o.body2\setFixedRotation(true)
 
 
 steppers = {}
@@ -395,7 +393,7 @@ class Thrower
 
         b = ThrowingDagger()
         actor.send b.id, 'set_pos', {@x + 40 * @facing_direction, @y - 60}
-        actor.send b.id, 'set_vel', {2000 * @facing_direction, 0}
+        actor.send b.id, 'set_vel', {3000 * @facing_direction, 0}
 
 
 -- Sends activate messages to Activatables
@@ -451,6 +449,43 @@ clamp_camera = (self) ->
         self._x = left_hand_side
     elseif right_hand_side < self._x
         self._x = right_hand_side
+
+
+class PlayerBBoxed
+    @needs = {'BBoxed'}
+
+    new: =>
+        @prismatic_connected = false
+        newbbox_prismatic(@)
+
+    step: (dt, sender) =>
+        if not @prismatic_connected
+            @prismatic_connected = true
+            love.physics.newPrismaticJoint(@body, @body2, @x, @y - 50, 0, -1, false)
+
+    set_vel: (msg, sender) =>
+        @body2\applyLinearImpulse(msg[1], msg[2])
+
+    move_right: (speed, sender) =>
+        @body2\applyLinearImpulse(speed, 0)
+
+    move_left: (speed, sender) =>
+        @body2\applyLinearImpulse(-speed, 0)
+
+    set_pos: (msg, sender) =>
+        @body2\setX msg[1]
+        @body2\setY msg[2]
+
+    set_room: (msg, sender) =>
+        @body2\destroy!
+        newbbox_prismatic(@)
+        @prismatic_connected = false
+
+    remove: (msg, sender) =>
+        @body2\destroy!
+
+    draw: (dt, sender) =>
+        love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
 
 
 class BBoxed
@@ -534,7 +569,7 @@ class Player extends Object
         @\_mixin Attacker
         --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
-        @\_mixin BBoxed
+        @\_mixin PlayerBBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
         @\_mixin Activator
@@ -696,7 +731,7 @@ class Monster extends Object
         @\_mixin Toucher
         @\_mixin Attacker
         @\_mixin Walker
-        @\_mixin BBoxed
+        @\_mixin PlayerBBoxed
         @\_mixin Bleeds
         @anims['walking'] = anim "assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0
         @anims["walking"]\setMode('once')
