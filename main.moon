@@ -85,9 +85,6 @@ class RoomOccupier
         @room = current_room
         @last_room_change_time = 0
 
-    die: (msg, sender) =>
-        --print 'dead!'
-
     set_pos: (msg, sender) =>
         @x = msg[1]
         @y = msg[2]
@@ -386,7 +383,7 @@ class Activator
 
 
 class Controlled
-    @needs = {'Animated', 'Stepper'}
+    @needs = {'Animated', 'Stepper', 'TouchingGroundChecker'}
 
     new: =>
         @hspeed = 200
@@ -463,7 +460,6 @@ class TouchingGroundChecker
         @touching_ground = false
 
     step: (dt, sender) =>
-        -- Check if we are touching the groudn
         contacts = @body\getContactList()
         for _, o in pairs contacts
             if o\isTouching()
@@ -471,6 +467,7 @@ class TouchingGroundChecker
                     actor.send @id, 'touch_ground'
                 @touching_ground = true
                 return
+
         @touching_ground = false
 
 

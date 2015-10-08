@@ -132,7 +132,6 @@ do
 end
 do
   local _base_0 = {
-    die = function(self, msg, sender) end,
     set_pos = function(self, msg, sender)
       self.x = msg[1]
       self.y = msg[2]
@@ -1031,7 +1030,8 @@ do
   local self = _class_0
   self.needs = {
     'Animated',
-    'Stepper'
+    'Stepper',
+    'TouchingGroundChecker'
   }
   Controlled = _class_0
 end
