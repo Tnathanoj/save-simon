@@ -25,6 +25,16 @@ newbbox = (o) ->
     --o.body\setFixedRotation(False)
     o.body\setMass(5)
 
+    o.body2 = {}
+    o.body2.body = love.physics.newBody(current_room.world, o.x, o.y - 50, "dynamic")
+    o.body2.shape = love.physics.newRectangleShape(0, 0, 10, 45)
+    o.body2.fixture = love.physics.newFixture(o.body2.body, o.body2.shape, 1)
+    o.body2.fixture\setUserData(o)
+    love.physics.newPrismaticJoint(o.body, o.body2.body, o.x, o.y - 50, 0, -1, false)
+    o.body2.body\setFixedRotation(true)
+    --love.physics.newWheelJoint(player.body, player_body.body, x, y - 20, 0, -1, false)
+    --love.physics.newDistanceJoint(player.body, player_body.body, x, y, x, y-40, false)
+
 
 steppers = {}
 class Stepper
@@ -384,8 +394,8 @@ class Thrower
         @last_throw = love.timer.getTime()
 
         b = ThrowingDagger()
-        actor.send b.id, 'set_pos', {@x, @y - 60}
-        actor.send b.id, 'set_vel', {5000 * @facing_direction, 0}
+        actor.send b.id, 'set_pos', {@x + 40 * @facing_direction, @y - 60}
+        actor.send b.id, 'set_vel', {2000 * @facing_direction, 0}
 
 
 -- Sends activate messages to Activatables
@@ -522,7 +532,7 @@ class Player extends Object
         @\_mixin WalkerJumper
         @\_mixin Croucher
         @\_mixin Attacker
-        @\_mixin FacesDirectionByVelocity
+        --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
         @\_mixin BBoxed
         @\_mixin TouchingGroundChecker

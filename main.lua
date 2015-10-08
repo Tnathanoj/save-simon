@@ -13,11 +13,18 @@ local current_room = { }
 local newbbox
 newbbox = function(o)
   o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-  o.shape = love.physics.newCircleShape(20)
+  o.shape = love.physics.newCircleShape(10)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  return o.body:setMass(5)
+  o.body:setMass(5)
+  o.body2 = { }
+  o.body2.body = love.physics.newBody(current_room.world, o.x, o.y - 50, "dynamic")
+  o.body2.shape = love.physics.newRectangleShape(0, 0, 10, 45)
+  o.body2.fixture = love.physics.newFixture(o.body2.body, o.body2.shape, 1)
+  o.body2.fixture:setUserData(o)
+  love.physics.newPrismaticJoint(o.body, o.body2.body, o.x, o.y - 50, 0, -1, false)
+  return o.body2.body:setFixedRotation(true)
 end
 local steppers = { }
 do
@@ -955,11 +962,11 @@ do
       self.last_throw = love.timer.getTime()
       local b = ThrowingDagger()
       actor.send(b.id, 'set_pos', {
-        self.x,
+        self.x + 40 * self.facing_direction,
         self.y - 60
       })
       return actor.send(b.id, 'set_vel', {
-        5000 * self.facing_direction,
+        2000 * self.facing_direction,
         0
       })
     end
@@ -1235,7 +1242,6 @@ do
       self:_mixin(WalkerJumper)
       self:_mixin(Croucher)
       self:_mixin(Attacker)
-      self:_mixin(FacesDirectionByVelocity)
       self:_mixin(Toucher)
       self:_mixin(BBoxed)
       self:_mixin(TouchingGroundChecker)
