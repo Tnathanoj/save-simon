@@ -23,7 +23,7 @@ newbbox = (o) ->
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
     --o.body\setFixedRotation(False)
-    o.body\setMass(10)
+    o.body\setMass(5)
 
 
 steppers = {}
@@ -387,7 +387,7 @@ class Controlled
 
     new: =>
         @hspeed = 200
-        @walk_speed = 150
+        @walk_speed = 100
 
     cmd_right: (msg, sender) =>
         if @touching_ground
@@ -477,7 +477,7 @@ class Jumper
     
     new: =>
         @last_jump_time = 0
-        @jump_impulse = 3000
+        @jump_impulse = 2000
         @jump_cooldown = 0.3
 
     cmd_up: (msg, sender) =>

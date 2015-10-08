@@ -17,7 +17,7 @@ newbbox = function(o)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  return o.body:setMass(10)
+  return o.body:setMass(5)
 end
 local steppers = { }
 do
@@ -1014,7 +1014,7 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.hspeed = 200
-      self.walk_speed = 150
+      self.walk_speed = 100
     end,
     __base = _base_0,
     __name = "Controlled"
@@ -1156,7 +1156,7 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.last_jump_time = 0
-      self.jump_impulse = 3000
+      self.jump_impulse = 2000
       self.jump_cooldown = 0.3
     end,
     __base = _base_0,
