@@ -13,7 +13,7 @@ local current_room = { }
 local newbbox
 newbbox = function(o)
   o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-  o.shape = love.physics.newCircleShape(10)
+  o.shape = love.physics.newCircleShape(20)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
@@ -283,12 +283,15 @@ end
 do
   local _base_0 = {
     cmd_down = function(self, dt, sender)
+      self.crouching = true
       return actor.send(self.id, 'set_anim', 'crouching')
     end
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
-    __init = function() end,
+    __init = function(self)
+      self.crouching = false
+    end,
     __base = _base_0,
     __name = "Croucher"
   }, {
@@ -945,6 +948,48 @@ do
 end
 do
   local _base_0 = {
+    cmd_secondary = function(self, msg, sender)
+      if love.timer.getTime() < self.last_throw + self.throw_cooldown_time then
+        return 
+      end
+      self.last_throw = love.timer.getTime()
+      local b = ThrowingDagger()
+      actor.send(b.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      return actor.send(b.id, 'set_vel', {
+        5000 * self.facing_direction,
+        0
+      })
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.last_throw = 0
+      self.throw_cooldown_time = 0.3
+    end,
+    __base = _base_0,
+    __name = "Thrower"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Animated',
+    'FacesDirection'
+  }
+  Thrower = _class_0
+end
+do
+  local _base_0 = {
     cmd_up = function(self, msg, sender)
       if love.timer.getTime() < self.last_activate + 1 then
         return 
@@ -1066,6 +1111,9 @@ do
       self.y = self.body:getY()
       self.x_vel, self.y_vel = self.body:getLinearVelocity()
       return clamp_velocity(self.x_vel, self.y_vel, self.body, self.speed_max)
+    end,
+    set_vel = function(self, msg, sender)
+      return self.body:applyLinearImpulse(msg[1], msg[2])
     end,
     move_right = function(self, speed, sender)
       return self.body:applyLinearImpulse(speed, 0)
@@ -1196,6 +1244,7 @@ do
       self:_mixin(Bleeds)
       self:_mixin(RunSmokey)
       self:_mixin(Controlled)
+      self:_mixin(Thrower)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)
@@ -1488,6 +1537,48 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Blood = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(BBoxed)
+      self:_mixin(Sprite)
+      self.speed_max = 3000
+      self.sprite = love.graphics.newImage("assets/gfx/cure.png")
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "ThrowingDagger",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  ThrowingDagger = _class_0
 end
 do
   local _parent_0 = Object
@@ -2127,6 +2218,9 @@ love.update = function(dt)
   end
   if love.keyboard.isDown("z") or love.keyboard.isDown("j") then
     actor.send(d.id, 'cmd_attack')
+  end
+  if love.keyboard.isDown("x") or love.keyboard.isDown("l") then
+    actor.send(d.id, 'cmd_secondary')
   end
   for _, o in pairs(steppers) do
     if o.room == current_room then

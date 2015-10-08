@@ -136,7 +136,12 @@ class WalkerJumper extends Walker
 class Croucher
     @needs = {'Animated'}
 
+    new: =>
+        @crouching = false
+
     cmd_down: (dt, sender) =>
+        @crouching = true
+        -- TODO: need to set to false somehow
         --actor.send @id, 'enqueue_anim', {anim:@anims['crouching']}
         actor.send @id, 'set_anim', 'crouching'
 
@@ -367,6 +372,22 @@ class Attacker
         actor.send @id, 'set_anim', 'attacking'
 
 
+class Thrower
+    @needs = {'Animated', 'FacesDirection'}
+    new: =>
+        @last_throw = 0
+        @throw_cooldown_time = 0.3
+
+    cmd_secondary: (msg, sender) =>
+        if love.timer.getTime() < @last_throw + @throw_cooldown_time
+            return
+        @last_throw = love.timer.getTime()
+
+        b = ThrowingDagger()
+        actor.send b.id, 'set_pos', {@x, @y - 60}
+        actor.send b.id, 'set_vel', {5000 * @facing_direction, 0}
+
+
 -- Sends activate messages to Activatables
 class Activator
     new: =>
@@ -411,6 +432,7 @@ clamp_velocity = (x_vel, y_vel, body, max_speed) ->
     if max_speed < math.abs(x_vel)
         body\setLinearVelocity(sign(x_vel) * max_speed, y_vel)
 
+
 clamp_camera = (self) ->
     left_hand_side = 0
     right_hand_side = current_room.map.width * current_room.map.tilewidth - windowWidth
@@ -433,6 +455,9 @@ class BBoxed
 
         @x_vel, @y_vel = @body\getLinearVelocity()
         clamp_velocity(@x_vel, @y_vel, @body, @speed_max)
+
+    set_vel: (msg, sender) =>
+        @body\applyLinearImpulse(msg[1], msg[2])
 
     move_right: (speed, sender) =>
         @body\applyLinearImpulse(speed, 0)
@@ -506,6 +531,7 @@ class Player extends Object
         @\_mixin Bleeds
         @\_mixin RunSmokey
         @\_mixin Controlled
+        @\_mixin Thrower
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
         --@\_mixin Falls
@@ -629,8 +655,6 @@ class Ladder extends Object
 --            @body\applyLinearImpulse 0, -20
 
 
-
-
 -- concrete
 class Blood extends Object
     mixins: =>
@@ -638,6 +662,17 @@ class Blood extends Object
         @\_mixin Bloody
         @\_mixin Stepper
         @\_mixin ShortLived
+
+
+class ThrowingDagger extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin BBoxed
+        --@\_mixin ShortLived
+        @\_mixin Sprite
+        @speed_max = 3000
+        @sprite = love.graphics.newImage "assets/gfx/cure.png"
 
 
 class Monster extends Object
@@ -876,6 +911,8 @@ love.update = (dt) ->
         actor.send d.id, 'cmd_down'
     if love.keyboard.isDown("z") or love.keyboard.isDown("j")
         actor.send d.id, 'cmd_attack'
+    if love.keyboard.isDown("x") or love.keyboard.isDown("l")
+        actor.send d.id, 'cmd_secondary'
 
     for _, o in pairs steppers
         if o.room == current_room
