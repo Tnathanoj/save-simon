@@ -257,9 +257,9 @@ function Map:initWorldCollision(world)
     -- FIXME: should instead be specifying the layer that causes collision higher up
 	for _, tileset in ipairs(self.tilesets) do
 
-        if tileset.properties.collidable and tileset.properties.collidable == "false" then
+            if tileset.properties.collidable and tileset.properties.collidable == "false" then
 
-        else
+            else
 
     --    local tileset = self.tilesets[1]         
             for _, tile in ipairs(tileset.tiles) do

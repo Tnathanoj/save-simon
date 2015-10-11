@@ -17,7 +17,7 @@ anim = (path, x, y, speed, a, b) ->
 current_room = {}
 
 newbbox = (o) ->
-    o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
+    o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
     o.shape = love.physics.newCircleShape(o.bbox_radius)
     --shape = love.physics.newRectangleShape(0, 0, 20, 50)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
@@ -28,10 +28,10 @@ newbbox = (o) ->
 
 
 newbbox_prismatic = (o) ->
-  o.body2 = love.physics.newBody(current_room.world, o.x, o.y - 40, "dynamic")
-  o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
-  o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
-  o.body2\setFixedRotation(true)
+    o.body2 = love.physics.newBody(o.room.world, o.x, o.y - 40, "dynamic")
+    o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
+    o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
+    o.body2\setFixedRotation(true)
 
 
 steppers = {}
@@ -456,6 +456,8 @@ class PlayerBBoxed
 
     new: =>
         @prismatic_connected = false
+
+    init: (msg, sender) =>
         newbbox_prismatic(@)
 
     step: (dt, sender) =>
@@ -484,16 +486,18 @@ class PlayerBBoxed
     remove: (msg, sender) =>
         @body2\destroy!
 
---    draw: (dt, sender) =>
---        love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
+    draw: (dt, sender) =>
+        love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
 
 
 class BBoxed
     new: =>
         @friction = 6
         @bbox_radius = 10
-        newbbox(@)
         @speed_max = 300
+
+    init: (msg, sender) =>
+        newbbox(@)
 
     step: (dt, sender) =>
         @x = @body\getX!
@@ -521,6 +525,9 @@ class BBoxed
 
     remove: (msg, sender) =>
         @body\destroy!
+
+    draw: (dt, sender) =>
+        love.graphics.circle("fill", @x, @y, @bbox_radius)
 
 
 -- Checks if we are touching the ground or not
@@ -570,7 +577,8 @@ class Player extends Object
         @\_mixin Attacker
         --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
-        @\_mixin PlayerBBoxed
+        --@\_mixin PlayerBBoxed
+        @\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
         @\_mixin Activator
@@ -990,7 +998,7 @@ love.draw = ->
         w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
         love.graphics.rectangle("fill", 0, -500, w, h)
         current_room.map.layers['Tile Layer 1']\draw()
-        --current_room.map\drawWorldCollision(current_room.collision)
+        current_room.map\drawWorldCollision(current_room.collision)
 
     current_room.map.layers['Objects']\draw()
     for _, d in pairs drawables

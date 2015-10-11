@@ -12,7 +12,7 @@ end
 local current_room = { }
 local newbbox
 newbbox = function(o)
-  o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
+  o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
   o.shape = love.physics.newCircleShape(o.bbox_radius)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
@@ -21,7 +21,7 @@ newbbox = function(o)
 end
 local newbbox_prismatic
 newbbox_prismatic = function(o)
-  o.body2 = love.physics.newBody(current_room.world, o.x, o.y - 40, "dynamic")
+  o.body2 = love.physics.newBody(o.room.world, o.x, o.y - 40, "dynamic")
   o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
   o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
   return o.body2:setFixedRotation(true)
@@ -1113,6 +1113,9 @@ clamp_camera = function(self)
 end
 do
   local _base_0 = {
+    init = function(self, msg, sender)
+      return newbbox_prismatic(self)
+    end,
     step = function(self, dt, sender)
       if not self.prismatic_connected then
         self.prismatic_connected = true
@@ -1148,7 +1151,6 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.prismatic_connected = false
-      return newbbox_prismatic(self)
     end,
     __base = _base_0,
     __name = "PlayerBBoxed"
@@ -1169,6 +1171,9 @@ do
 end
 do
   local _base_0 = {
+    init = function(self, msg, sender)
+      return newbbox(self)
+    end,
     step = function(self, dt, sender)
       self.x = self.body:getX()
       self.y = self.body:getY()
@@ -1194,6 +1199,9 @@ do
     end,
     remove = function(self, msg, sender)
       return self.body:destroy()
+    end,
+    draw = function(self, dt, sender)
+      return love.graphics.circle("fill", self.x, self.y, self.bbox_radius)
     end
   }
   _base_0.__index = _base_0
@@ -1201,7 +1209,6 @@ do
     __init = function(self)
       self.friction = 6
       self.bbox_radius = 10
-      newbbox(self)
       self.speed_max = 300
     end,
     __base = _base_0,
@@ -1300,7 +1307,7 @@ do
       self:_mixin(Croucher)
       self:_mixin(Attacker)
       self:_mixin(Toucher)
-      self:_mixin(PlayerBBoxed)
+      self:_mixin(BBoxed)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
@@ -2312,7 +2319,8 @@ love.draw = function()
     love.graphics.setColor(255, 255, 255)
     w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
     love.graphics.rectangle("fill", 0, -500, w, h)
-    return current_room.map.layers['Tile Layer 1']:draw()
+    current_room.map.layers['Tile Layer 1']:draw()
+    return current_room.map:drawWorldCollision(current_room.collision)
   end)
   current_room.map.layers['Objects']:draw()
   for _, d in pairs(drawables) do
