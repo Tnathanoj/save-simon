@@ -1377,9 +1377,6 @@ do
     end,
     remove = function(self, msg, sender)
       return self.body2:destroy()
-    end,
-    draw = function(self, dt, sender)
-      return love.graphics.polygon("fill", self.body2:getWorldPoints(self.shape2:getPoints()))
     end
   }
   _base_0.__index = _base_0
@@ -1434,9 +1431,6 @@ do
     end,
     remove = function(self, msg, sender)
       return self.body:destroy()
-    end,
-    draw = function(self, dt, sender)
-      return love.graphics.circle("fill", self.x, self.y, self.bbox_radius)
     end
   }
   _base_0.__index = _base_0
@@ -2657,8 +2651,7 @@ love.draw = function()
     love.graphics.setColor(255, 255, 255)
     w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
     love.graphics.rectangle("fill", 0, -500, w, h)
-    current_room.map.layers['Tile Layer 1']:draw()
-    return current_room.map:drawWorldCollision(current_room.collision)
+    return current_room.map.layers['Tile Layer 1']:draw()
   end)
   current_room.map.layers['Objects']:draw()
   for _, d in pairs(drawables) do
