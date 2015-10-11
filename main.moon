@@ -27,7 +27,7 @@ newbbox = (o) ->
 
 newbbox_quad = (o) ->
     o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
-    o.shape = love.physics.newRectangleShape(0, 0, 9, 28)
+    o.shape = love.physics.newRectangleShape(0, 0, o.bboxed_quad_w, o.bboxed_quad_h)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
@@ -80,6 +80,8 @@ class Damageable
         if @hp <= 0
             actor.send @id, "die", "you're dead"
             actor.send @id, "remove"
+            b = Skull()
+            actor.send b.id, 'set_pos', {@x, @y - 60}
 
     hp: (msg, sender) =>
         @hp += msg.pts
@@ -259,6 +261,10 @@ class Sprite
 
 class QuadSprite
     @needs = {'Drawable', 'BBoxedQuad'}
+
+    new: =>
+        @bboxed_quad_w = 32
+        @bboxed_quad_h = 32
 
     init: (msg, sender) =>
         a = { 0, 0, 0, 0, 255, 255, 255 }
@@ -791,8 +797,19 @@ class ThrowingKunai extends Object
         @speed_max = 3000
         @sprite = love.graphics.newImage "assets/gfx/kunai.png"
 
+        @bboxed_quad_w = 9
+        @bboxed_quad_h = 28
         --@\_mixin ShortLived
         --@var_short_lived_life_time = 2
+
+
+class Skull extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin BBoxedQuad
+        @\_mixin QuadSprite
+        @sprite = love.graphics.newImage "assets/gfx/skull.png"
 
 
 class Monster extends Object
