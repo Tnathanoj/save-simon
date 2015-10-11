@@ -13,7 +13,7 @@ local current_room = { }
 local newbbox
 newbbox = function(o)
   o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-  o.shape = love.physics.newCircleShape(20)
+  o.shape = love.physics.newCircleShape(o.bbox_radius)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
@@ -1200,6 +1200,7 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.friction = 6
+      self.bbox_radius = 10
       newbbox(self)
       self.speed_max = 300
     end,
@@ -1609,6 +1610,7 @@ do
       self:_mixin(BBoxed)
       self:_mixin(Sprite)
       self.speed_max = 3000
+      self.bbox_radius = 5
       self.sprite = love.graphics.newImage("assets/gfx/cure.png")
     end
   }

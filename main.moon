@@ -18,7 +18,7 @@ current_room = {}
 
 newbbox = (o) ->
     o.body = love.physics.newBody(current_room.world, o.x, o.y, "dynamic")
-    o.shape = love.physics.newCircleShape(20)
+    o.shape = love.physics.newCircleShape(o.bbox_radius)
     --shape = love.physics.newRectangleShape(0, 0, 20, 50)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
@@ -491,6 +491,7 @@ class PlayerBBoxed
 class BBoxed
     new: =>
         @friction = 6
+        @bbox_radius = 10
         newbbox(@)
         @speed_max = 300
 
@@ -717,6 +718,7 @@ class ThrowingDagger extends Object
         --@\_mixin ShortLived
         @\_mixin Sprite
         @speed_max = 3000
+        @bbox_radius = 5
         @sprite = love.graphics.newImage "assets/gfx/cure.png"
 
 
