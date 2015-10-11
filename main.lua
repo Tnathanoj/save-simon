@@ -1303,58 +1303,6 @@ end
 do
   local _base_0 = {
     init = function(self, msg, sender)
-      return newbbox_quad(self)
-    end,
-    step = function(self, dt, sender)
-      self.x = self.body:getX()
-      self.y = self.body:getY()
-      self.x_vel, self.y_vel = self.body:getLinearVelocity()
-      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.speed_max)
-    end,
-    set_vel = function(self, msg, sender)
-      return self.body:applyLinearImpulse(msg[1], msg[2])
-    end,
-    move_right = function(self, speed, sender)
-      return self.body:applyLinearImpulse(speed, 0)
-    end,
-    move_left = function(self, speed, sender)
-      return self.body:applyLinearImpulse(-speed, 0)
-    end,
-    set_pos = function(self, msg, sender)
-      self.body:setX(msg[1])
-      return self.body:setY(msg[2])
-    end,
-    set_room = function(self, msg, sender)
-      self.body:destroy()
-      return newbbox_quad(self)
-    end,
-    remove = function(self, msg, sender)
-      return self.body:destroy()
-    end
-  }
-  _base_0.__index = _base_0
-  local _class_0 = setmetatable({
-    __init = function(self)
-      self.friction = 6
-      self.bbox_radius = 10
-      self.speed_max = 300
-    end,
-    __base = _base_0,
-    __name = "BBoxedQuad"
-  }, {
-    __index = _base_0,
-    __call = function(cls, ...)
-      local _self_0 = setmetatable({}, _base_0)
-      cls.__init(_self_0, ...)
-      return _self_0
-    end
-  })
-  _base_0.__class = _class_0
-  BBoxedQuad = _class_0
-end
-do
-  local _base_0 = {
-    init = function(self, msg, sender)
       return newbbox(self)
     end,
     step = function(self, dt, sender)
@@ -1406,6 +1354,65 @@ do
   })
   _base_0.__class = _class_0
   BBoxed = _class_0
+end
+do
+  local _parent_0 = BBoxed
+  local _base_0 = {
+    init = function(self, msg, sender)
+      return newbbox_quad(self)
+    end,
+    step = function(self, dt, sender)
+      return _parent_0.step(self, dt, sender)
+    end,
+    set_vel = function(self, msg, sender)
+      return _parent_0.set_vel(self, msg, sender)
+    end,
+    move_right = function(self, speed, sender)
+      return _parent_0.move_right(self, speed, sender)
+    end,
+    move_left = function(self, speed, sender)
+      return _parent_0.move_left(self, speed, sender)
+    end,
+    set_pos = function(self, msg, sender)
+      return _parent_0.set_pos(self, msg, sender)
+    end,
+    set_room = function(self, msg, sender)
+      self.body:destroy()
+      return newbbox_quad(self)
+    end,
+    remove = function(self, msg, sender)
+      return _parent_0.remove(self, msg, sender)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "BBoxedQuad",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  BBoxedQuad = _class_0
 end
 do
   local _base_0 = {
@@ -1797,12 +1804,9 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      self:_mixin(ShortLived)
       self:_mixin(QuadSprite)
       self.speed_max = 3000
-      self.bbox_radius = 5
       self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
-      self.var_short_lived_life_time = 2
     end
   }
   _base_0.__index = _base_0

@@ -525,46 +525,6 @@ class PlayerBBoxed
         love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
 
 
-class BBoxedQuad
-    new: =>
-        @friction = 6
-        @bbox_radius = 10
-        @speed_max = 300
-
-    init: (msg, sender) =>
-        newbbox_quad(@)
-
-    step: (dt, sender) =>
-        @x = @body\getX!
-        @y = @body\getY!
-
-        @x_vel, @y_vel = @body\getLinearVelocity()
-        clamp_velocity(@x_vel, @y_vel, @body, @speed_max)
-
-    set_vel: (msg, sender) =>
-        @body\applyLinearImpulse(msg[1], msg[2])
-
-    move_right: (speed, sender) =>
-        @body\applyLinearImpulse(speed, 0)
-
-    move_left: (speed, sender) =>
-        @body\applyLinearImpulse(-speed, 0)
-
-    set_pos: (msg, sender) =>
-        @body\setX msg[1]
-        @body\setY msg[2]
-
-    set_room: (msg, sender) =>
-        @body\destroy!
-        newbbox_quad(@)
-
-    remove: (msg, sender) =>
-        @body\destroy!
-
---    draw: (dt, sender) =>
---        love.graphics.polygon("fill", @body\getWorldPoints(@shape\getPoints()))
-
-
 class BBoxed
     new: =>
         @friction = 6
@@ -603,6 +563,36 @@ class BBoxed
 
     draw: (dt, sender) =>
         love.graphics.circle("fill", @x, @y, @bbox_radius)
+
+
+class BBoxedQuad extends BBoxed
+    init: (msg, sender) =>
+        newbbox_quad(@)
+
+    step: (dt, sender) =>
+        super dt, sender
+
+    set_vel: (msg, sender) =>
+        super msg, sender
+
+    move_right: (speed, sender) =>
+        super speed, sender
+
+    move_left: (speed, sender) =>
+        super speed, sender
+
+    set_pos: (msg, sender) =>
+        super msg, sender
+
+    set_room: (msg, sender) =>
+        @body\destroy!
+        newbbox_quad(@)
+
+    remove: (msg, sender) =>
+        super msg, sender
+
+--    draw: (dt, sender) =>
+--        love.graphics.polygon("fill", @body\getWorldPoints(@shape\getPoints()))
 
 
 -- Checks if we are touching the ground or not
@@ -799,7 +789,6 @@ class ThrowingKunai extends Object
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
         @speed_max = 3000
-        @bbox_radius = 5
         @sprite = love.graphics.newImage "assets/gfx/kunai.png"
 
         --@\_mixin ShortLived
