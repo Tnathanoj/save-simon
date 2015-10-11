@@ -33,6 +33,7 @@ newbbox_prismatic = function(o)
   o.body2 = love.physics.newBody(o.room.world, o.x, o.y - 40, "dynamic")
   o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
   o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
+  o.fixture2:setUserData(o)
   return o.body2:setFixedRotation(true)
 end
 local steppers = { }
@@ -85,7 +86,6 @@ do
       end
     end,
     dmg = function(self, msg, sender)
-      print(string.format('msg from:%s msg:%s', sender, msg.pts))
       actor.send(sender, "dmging", self.id)
       self.hp = self.hp - msg.pts
       if self.hp <= 0 then

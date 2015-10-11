@@ -38,6 +38,7 @@ newbbox_prismatic = (o) ->
     o.body2 = love.physics.newBody(o.room.world, o.x, o.y - 40, "dynamic")
     o.shape2 = love.physics.newRectangleShape(0, 0, 10, 64)
     o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
+    o.fixture2\setUserData(o)
     o.body2\setFixedRotation(true)
 
 
