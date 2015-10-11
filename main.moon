@@ -75,7 +75,11 @@ class Damageable
                 table.remove damageables, key
 
     dmg: (msg, sender) =>
+
         --print(string.format('msg from:%s msg:%s', sender, msg.pts))
+
+        actor.send sender, "dmging", @id
+
         @hp -= msg.pts
         if @hp <= 0
             actor.send @id, "die", "you're dead"
@@ -93,6 +97,40 @@ class PainfulTouch
 
     touch: (msg, sender) =>
         actor.send msg, 'dmg', {pts: @dmg_pts}
+
+
+class DamageOnContact
+    step: (dt, sender) =>
+        contacts = @body\getContactList()
+        for _, o in pairs contacts
+            if o\isTouching()
+                fixtureA, fixtureB = o\getFixtures()
+                a = fixtureA\getUserData()
+                b = fixtureB\getUserData()
+                if a != nil and a.id != nil and b != nil and b.id != nil
+                    if a.id == @id
+                        actor.send b.id, 'dmg', {pts: @dmg_pts}
+                    else 
+                        actor.send a.id, 'dmg', {pts: @dmg_pts}
+
+
+-- Removes itself when it damages something
+class RemovedOnDamage
+    dmging: (msg, sender) =>
+        actor.send @id, "remove"
+
+
+class NoDamageIfStill
+    new: =>
+        @no_dmg_in = true
+
+    step: (dt, sender) =>
+        if math.abs(@x_vel) < 200 and math.abs(@y_vel) < 200
+            actor.send @id, "mixout", "Touchable"
+            @no_dmg_in = false
+        else if not @no_dmg_in
+            actor.send @id, "mixin", "Touchable"
+            @no_dmg_in = true
 
 
 class RoomOccupier
@@ -794,11 +832,18 @@ class ThrowingKunai extends Object
         @\_mixin Stepper
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
+        @\_mixin DamageOnContact
+        @\_mixin RemovedOnDamage
+        --@\_mixin NoDamageIfStill
+
+        @dmg_pts = 10
+
         @speed_max = 3000
         @sprite = love.graphics.newImage "assets/gfx/kunai.png"
 
         @bboxed_quad_w = 9
         @bboxed_quad_h = 28
+
         --@\_mixin ShortLived
         --@var_short_lived_life_time = 2
 

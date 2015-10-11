@@ -85,6 +85,8 @@ do
       end
     end,
     dmg = function(self, msg, sender)
+      print(string.format('msg from:%s msg:%s', sender, msg.pts))
+      actor.send(sender, "dmging", self.id)
       self.hp = self.hp - msg.pts
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
@@ -150,6 +152,100 @@ do
     'Touchable'
   }
   PainfulTouch = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      local contacts = self.body:getContactList()
+      for _, o in pairs(contacts) do
+        if o:isTouching() then
+          local fixtureA, fixtureB = o:getFixtures()
+          local a = fixtureA:getUserData()
+          local b = fixtureB:getUserData()
+          if a ~= nil and a.id ~= nil and b ~= nil and b.id ~= nil then
+            if a.id == self.id then
+              actor.send(b.id, 'dmg', {
+                pts = self.dmg_pts
+              })
+            else
+              actor.send(a.id, 'dmg', {
+                pts = self.dmg_pts
+              })
+            end
+          end
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "DamageOnContact"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  DamageOnContact = _class_0
+end
+do
+  local _base_0 = {
+    dmging = function(self, msg, sender)
+      return actor.send(self.id, "remove")
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "RemovedOnDamage"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  RemovedOnDamage = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      if math.abs(self.x_vel) < 200 and math.abs(self.y_vel) < 200 then
+        actor.send(self.id, "mixout", "Touchable")
+        self.no_dmg_in = false
+      else
+        if not self.no_dmg_in then
+          actor.send(self.id, "mixin", "Touchable")
+          self.no_dmg_in = true
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.no_dmg_in = true
+    end,
+    __base = _base_0,
+    __name = "NoDamageIfStill"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  NoDamageIfStill = _class_0
 end
 do
   local _base_0 = {
@@ -1813,6 +1909,9 @@ do
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
       self:_mixin(QuadSprite)
+      self:_mixin(DamageOnContact)
+      self:_mixin(RemovedOnDamage)
+      self.dmg_pts = 10
       self.speed_max = 3000
       self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
       self.bboxed_quad_w = 9
