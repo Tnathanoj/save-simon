@@ -19,6 +19,15 @@ newbbox = function(o)
   o.fixture:setFriction(o.friction)
   return o.body:setMass(5)
 end
+local newbbox_quad
+newbbox_quad = function(o)
+  o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
+  o.shape = love.physics.newRectangleShape(0, 0, 9, 28)
+  o.fixture = love.physics.newFixture(o.body, o.shape, 1)
+  o.fixture:setUserData(o)
+  o.fixture:setFriction(o.friction)
+  return o.body:setMass(5)
+end
 local newbbox_prismatic
 newbbox_prismatic = function(o)
   o.body2 = love.physics.newBody(o.room.world, o.x, o.y - 40, "dynamic")
@@ -621,6 +630,124 @@ do
 end
 do
   local _base_0 = {
+    init = function(self, msg, sender)
+      local a = {
+        0,
+        0,
+        0,
+        0,
+        255,
+        255,
+        255
+      }
+      local b = {
+        0,
+        0,
+        1,
+        0,
+        255,
+        255,
+        255
+      }
+      local c = {
+        0,
+        0,
+        1,
+        1,
+        255,
+        255,
+        255
+      }
+      local d = {
+        0,
+        0,
+        0,
+        1,
+        255,
+        255,
+        255
+      }
+      self.mesh = love.graphics.newMesh({
+        a,
+        b,
+        c,
+        d
+      }, self.sprite)
+      return self.body:setAngle(90)
+    end,
+    draw = function(self, msg, sender)
+      local x1, y1, x2, y2, x3, y3, x4, y4 = self.body:getWorldPoints(self.shape:getPoints())
+      local a = {
+        x1,
+        y1,
+        0,
+        0,
+        255,
+        255,
+        255
+      }
+      local b = {
+        x2,
+        y2,
+        1,
+        0,
+        255,
+        255,
+        255
+      }
+      local c = {
+        x3,
+        y3,
+        1,
+        1,
+        255,
+        255,
+        255
+      }
+      local d = {
+        x4,
+        y4,
+        0,
+        1,
+        255,
+        255,
+        255
+      }
+      self.mesh:setVertices({
+        a,
+        b,
+        c,
+        d
+      })
+      return love.graphics.draw(self.mesh, 0, 0)
+    end,
+    draw_done = function(self, msg, sender)
+      return love.graphics.setColor(255, 255, 255)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "QuadSprite"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable',
+    'BBoxedQuad'
+  }
+  QuadSprite = _class_0
+end
+do
+  local _base_0 = {
     set_anim = function(self, anim, sender)
       self.curr_anim = self.anims[anim]
       self.curr_anim:reset()
@@ -960,7 +1087,7 @@ do
         return 
       end
       self.last_throw = love.timer.getTime()
-      local b = ThrowingDagger()
+      local b = ThrowingKunai()
       actor.send(b.id, 'set_pos', {
         self.x + 40 * self.facing_direction,
         self.y - 60
@@ -1176,6 +1303,58 @@ end
 do
   local _base_0 = {
     init = function(self, msg, sender)
+      return newbbox_quad(self)
+    end,
+    step = function(self, dt, sender)
+      self.x = self.body:getX()
+      self.y = self.body:getY()
+      self.x_vel, self.y_vel = self.body:getLinearVelocity()
+      return clamp_velocity(self.x_vel, self.y_vel, self.body, self.speed_max)
+    end,
+    set_vel = function(self, msg, sender)
+      return self.body:applyLinearImpulse(msg[1], msg[2])
+    end,
+    move_right = function(self, speed, sender)
+      return self.body:applyLinearImpulse(speed, 0)
+    end,
+    move_left = function(self, speed, sender)
+      return self.body:applyLinearImpulse(-speed, 0)
+    end,
+    set_pos = function(self, msg, sender)
+      self.body:setX(msg[1])
+      return self.body:setY(msg[2])
+    end,
+    set_room = function(self, msg, sender)
+      self.body:destroy()
+      return newbbox_quad(self)
+    end,
+    remove = function(self, msg, sender)
+      return self.body:destroy()
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.friction = 6
+      self.bbox_radius = 10
+      self.speed_max = 300
+    end,
+    __base = _base_0,
+    __name = "BBoxedQuad"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  BBoxedQuad = _class_0
+end
+do
+  local _base_0 = {
+    init = function(self, msg, sender)
       return newbbox(self)
     end,
     step = function(self, dt, sender)
@@ -1368,16 +1547,15 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
-      if self.short_lived_start_time + 0.3 < love.timer.getTime() then
+      if self.short_lived_start_time + self.var_short_lived_life_time < love.timer.getTime() then
         return actor.send(self.id, "remove")
-      else
-        return self.blood:update(dt)
       end
     end
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
+      self.var_short_lived_life_time = 0.3
       self.short_lived_start_time = love.timer.getTime()
     end,
     __base = _base_0,
@@ -1618,11 +1796,13 @@ do
     mixins = function(self)
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
-      self:_mixin(BBoxed)
-      self:_mixin(Sprite)
+      self:_mixin(BBoxedQuad)
+      self:_mixin(ShortLived)
+      self:_mixin(QuadSprite)
       self.speed_max = 3000
       self.bbox_radius = 5
-      self.sprite = love.graphics.newImage("assets/gfx/cure.png")
+      self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
+      self.var_short_lived_life_time = 2
     end
   }
   _base_0.__index = _base_0
@@ -1632,7 +1812,7 @@ do
       return _parent_0.__init(self, ...)
     end,
     __base = _base_0,
-    __name = "ThrowingDagger",
+    __name = "ThrowingKunai",
     __parent = _parent_0
   }, {
     __index = function(cls, name)
@@ -1653,7 +1833,7 @@ do
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
-  ThrowingDagger = _class_0
+  ThrowingKunai = _class_0
 end
 do
   local _parent_0 = Object
