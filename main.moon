@@ -90,7 +90,7 @@ class PainfulTouch
     @needs = {'Touchable'}
 
     touch: (msg, sender) =>
-        actor.send sender.id, 'dmg', {pts: @dmg_pts}
+        actor.send msg, 'dmg', {pts: @dmg_pts}
 
 
 class RoomOccupier

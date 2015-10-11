@@ -121,7 +121,8 @@ end
 do
   local _base_0 = {
     touch = function(self, msg, sender)
-      return actor.send(sender.id, 'dmg', {
+      print("touch")
+      return actor.send(msg, 'dmg', {
         pts = self.dmg_pts
       })
     end
