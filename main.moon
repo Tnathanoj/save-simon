@@ -484,8 +484,8 @@ class PlayerBBoxed
     remove: (msg, sender) =>
         @body2\destroy!
 
-    draw: (dt, sender) =>
-        love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
+--    draw: (dt, sender) =>
+--        love.graphics.polygon("fill", @body2\getWorldPoints(@shape2\getPoints()))
 
 
 class BBoxed
