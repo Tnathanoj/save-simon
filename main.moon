@@ -421,12 +421,16 @@ class Controlled
     cmd_right: (msg, sender) =>
         if @touching_ground
             actor.send @id, 'move_right', @walk_speed
+        else
+            -- Air control
+            actor.send @id, 'move_right', @walk_speed * 0.2
 
     cmd_left: (msg, sender) =>
         if @touching_ground
             actor.send @id, 'move_left', @walk_speed
-
-
+        else
+            -- Air control
+            actor.send @id, 'move_left', @walk_speed * 0.2
 
 
 sign = (x) ->
@@ -577,8 +581,8 @@ class Player extends Object
         @\_mixin Attacker
         --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
-        --@\_mixin PlayerBBoxed
-        @\_mixin BBoxed
+        @\_mixin PlayerBBoxed
+        --@\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
         @\_mixin Activator

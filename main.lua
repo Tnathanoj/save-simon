@@ -1054,11 +1054,15 @@ do
     cmd_right = function(self, msg, sender)
       if self.touching_ground then
         return actor.send(self.id, 'move_right', self.walk_speed)
+      else
+        return actor.send(self.id, 'move_right', self.walk_speed * 0.2)
       end
     end,
     cmd_left = function(self, msg, sender)
       if self.touching_ground then
         return actor.send(self.id, 'move_left', self.walk_speed)
+      else
+        return actor.send(self.id, 'move_left', self.walk_speed * 0.2)
       end
     end
   }
@@ -1307,7 +1311,7 @@ do
       self:_mixin(Croucher)
       self:_mixin(Attacker)
       self:_mixin(Toucher)
-      self:_mixin(BBoxed)
+      self:_mixin(PlayerBBoxed)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
