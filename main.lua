@@ -2568,6 +2568,7 @@ do
     mixins = function(self)
       self:add_handler("init", VendingmachinePhysical.init)
       self:add_handler("dmg", VendingmachinePhysical.dmg)
+      self:add_handler("draw", VendingmachinePhysical.draw)
       self.sprite = love.graphics.newImage("assets/gfx/jihanki.png")
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
@@ -2579,6 +2580,12 @@ do
       self.mass = 30
       self.hp = 1000
       self.speed_max = 5000
+      self.light_shape = self.room.lightWorld:newImage(self.sprite, self.x, self.y, self.sprite:getWidth(), self.sprite:getHeight(), 0, 0)
+      self.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
+      return self.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
+    end,
+    draw = function(self, msg, sender)
+      return self.light_shape:setPosition(self.x, self.y)
     end,
     dmg = function(self, msg, sender)
       local velx = 1

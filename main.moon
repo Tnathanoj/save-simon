@@ -1039,6 +1039,7 @@ class VendingmachinePhysical extends Object
     mixins: =>
         @\add_handler "init", VendingmachinePhysical.init
         @\add_handler "dmg", VendingmachinePhysical.dmg
+        --@\add_handler "draw", VendingmachinePhysical.draw
         @sprite = love.graphics.newImage "assets/gfx/jihanki.png"
         @\_mixin RoomOccupier
         @\_mixin Stepper
@@ -1050,6 +1051,14 @@ class VendingmachinePhysical extends Object
         @mass = 30
         @hp = 1000
         @speed_max = 5000
+        --@light = @room.lightWorld\newLight(@x, @y, 255, 255, 255)
+        --@light\setRange(100)
+        --@light_shape = @room.lightWorld\newImage(@sprite, @x, @y, @sprite\getWidth(), @sprite\getHeight(), 0, 0)
+        --@light_shape\setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
+        --@light_shape\setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
+
+--    draw: (msg, sender) =>
+--        @light\setPosition(@x, @y)
 
     dmg: (msg, sender) =>
         velx = 1
