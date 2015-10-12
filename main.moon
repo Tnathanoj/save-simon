@@ -960,6 +960,42 @@ class Limb extends Gib
         super!
 
 
+class Eye extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        --@\_mixin Animated
+        @\_mixin Damageable
+        --@\_mixin MouseFollower
+        --@\_mixin PlayerFollower
+        --@\_mixin FacesDirectionByVelocity
+        --@\_mixin Toucher
+        --@\_mixin Attacker
+        --@\_mixin Walker
+        --@\_mixin PlayerBBoxed
+        @\_mixin Sprite
+        @\_mixin BBoxed
+        @\_mixin Gibable
+        @\_mixin Bleeds
+
+        @sprite = love.graphics.newImage "assets/gfx/eye_ball.png"
+        @sprite2 = love.graphics.newImage "assets/gfx/pupil.png"
+
+        @\add_handler "step", Eye.step
+        @\add_handler "draw", Eye.draw
+        @attack_cooldown_time = 1.5
+        @faction = 'bad'
+
+    step: (dt, sender) =>
+        actor.send @id, 'cmd_attack'
+
+    draw: (msg, sender) =>
+        x = math.sin(love.timer.getTime()) * 10
+        love.graphics.draw @sprite2,
+            x + @x - @sprite2\getWidth()/2,
+            @y - @sprite2\getHeight()/2
+
+
+
 class Monster extends Object
     mixins: =>
         @\_mixin RoomOccupier
