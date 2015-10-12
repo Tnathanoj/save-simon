@@ -22,7 +22,7 @@ newbbox = (o) ->
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
-    o.body\setMass(5)
+    o.body\setMass(o.mass)
 
 
 newbbox_quad = (o) ->
@@ -31,7 +31,7 @@ newbbox_quad = (o) ->
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
-    o.body\setMass(5)
+    o.body\setMass(o.mass)
 
 
 newbbox_prismatic = (o) ->
@@ -40,6 +40,7 @@ newbbox_prismatic = (o) ->
     o.fixture2 = love.physics.newFixture(o.body2, o.shape2, 1)
     o.fixture2\setUserData(o)
     o.body2\setFixedRotation(true)
+    --o.body2\setMass(o.mass)
 
 
 steppers = {}
@@ -99,8 +100,7 @@ class PainfulTouch
         actor.send msg, 'dmg', {pts: @dmg_pts}
 
 
-random_direction = ->
-    magnitude = 3000
+random_direction = (magnitude) ->
     return {magnitude - math.random() * magnitude * 2, -math.sin(math.random()) * magnitude}
 
 
@@ -108,27 +108,27 @@ class Gibable
     die: (msg, sender) =>
         o = Skull()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
         o = Ribcage()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction()
+        actor.send o.id, 'set_vel', random_direction(3000)
 
 
 class DamageOnContact
@@ -314,7 +314,9 @@ class Sprite
     @needs = {'Drawable'}
 
     draw: (msg, sender) =>
-        love.graphics.draw @sprite, @x, @y
+        love.graphics.draw @sprite,
+                @x - @sprite\getWidth()/2,
+                @y + @world_obj.height - @sprite\getHeight()
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -335,7 +337,6 @@ class QuadSprite
         c = { 0, 0, 1, 1, 255, 255, 255 }
         d = { 0, 0, 0, 1, 255, 255, 255 }
         @mesh = love.graphics.newMesh({a,b,c,d}, @sprite)
-        @body\setAngle(90)
 
     draw: (msg, sender) =>
         x1, y1, x2, y2, x3, y3, x4, y4 = @body\getWorldPoints(@shape\getPoints())
@@ -583,6 +584,7 @@ class PlayerBBoxed
     @needs = {'BBoxed'}
 
     new: =>
+        @mass = 5
         @prismatic_connected = false
 
     init: (msg, sender) =>
@@ -620,6 +622,7 @@ class PlayerBBoxed
 
 class BBoxed
     new: =>
+        @mass = 5
         @friction = 6
         @bbox_radius = 10
         @speed_max = 300
@@ -660,6 +663,10 @@ class BBoxed
 
 class BBoxedQuad extends BBoxed
     init: (msg, sender) =>
+        newbbox_quad(@)
+
+    mixin: (msg, sender) =>
+        print "mixxing in"
         newbbox_quad(@)
 
     step: (dt, sender) =>
@@ -849,6 +856,11 @@ class Ladderable
         @body\applyLinearImpulse 0, -5
 
 
+class RotatedRight
+    init: (msg, sender) =>
+        @body\setAngle(90)
+
+
 class Ladder extends Object
     mixins: =>
         @\_mixin RoomOccupier
@@ -887,6 +899,7 @@ class ThrowingKunai extends Object
         @\_mixin DamageOnContact
         @\_mixin RemovedOnDamage
         --@\_mixin NoDamageIfStill
+        @\_mixin RotatedRight
 
         @dmg_pts = 10
 
@@ -897,6 +910,7 @@ class ThrowingKunai extends Object
 
         --@\_mixin ShortLived
         --@var_short_lived_life_time = 2
+
 
 class Gib extends Object
     mixins: =>
@@ -1018,11 +1032,36 @@ class Turkey extends Object
         @sprite = love.graphics.newImage "assets/gfx/turkey.png"
 
 
+class VendingmachinePhysical extends Object
+    mixins: =>
+        @\add_handler "init", VendingmachinePhysical.init
+        @sprite = love.graphics.newImage "assets/gfx/jihanki.png"
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin BBoxedQuad
+        @\_mixin QuadSprite
+
+    init: (msg, sender) =>
+        @mass = 30
+
+
 class Vendingmachine extends Object
     mixins: =>
-        @\_mixin RoomOccupier
-        @\_mixin Sprite
+        @\add_handler "dmg", Vendingmachine.dmg
         @sprite = love.graphics.newImage "assets/gfx/jihanki.png"
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin Sprite
+        @\_mixin Damageable
+
+    dmg: (msg, sender) =>
+        v = VendingmachinePhysical()
+        actor.send v.id, 'set_pos', {@x, @y}
+        velx = 1
+        if math.random() < 0.5
+            velx = -1
+        actor.send v.id, 'set_vel', {velx * 3000, -3000}
+        actor.send @id, 'remove'
 
 
 class Door extends Object

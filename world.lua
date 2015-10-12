@@ -230,12 +230,12 @@ function load_levels(object_create)
                         local r, g, b = string.match(obj.properties.colour, "(..)(..)(..)")
                         obj.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
                     end
-                elseif obj.type == 'vendingmachine' then
-                    obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
-                    --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
-                    obj.light_shape = room.lightWorld:newImage(obj.img, obj.x + obj.width / 2, obj.y + obj.height / 2 + 4, obj.width, obj.height, 0, 0)
-                    obj.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
-                    obj.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
+--                elseif obj.type == 'vendingmachine' then
+--                    obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
+--                    --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
+--                    obj.light_shape = room.lightWorld:newImage(obj.img, obj.x + obj.width / 2, obj.y + obj.height / 2 + 4, obj.width, obj.height, 0, 0)
+--                    obj.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
+--                    obj.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
                 elseif obj.type == 'invisiblewall' then
                     local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
                     body:setMass(100000)

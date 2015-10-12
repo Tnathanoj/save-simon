@@ -17,7 +17,7 @@ newbbox = function(o)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  return o.body:setMass(5)
+  return o.body:setMass(o.mass)
 end
 local newbbox_quad
 newbbox_quad = function(o)
@@ -26,7 +26,7 @@ newbbox_quad = function(o)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
-  return o.body:setMass(5)
+  return o.body:setMass(o.mass)
 end
 local newbbox_prismatic
 newbbox_prismatic = function(o)
@@ -149,8 +149,7 @@ do
   PainfulTouch = _class_0
 end
 local random_direction
-random_direction = function()
-  local magnitude = 3000
+random_direction = function(magnitude)
   return {
     magnitude - math.random() * magnitude * 2,
     -math.sin(math.random()) * magnitude
@@ -164,37 +163,37 @@ do
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction())
+      actor.send(o.id, 'set_vel', random_direction(3000))
       o = Ribcage()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction())
+      actor.send(o.id, 'set_vel', random_direction(3000))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction())
+      actor.send(o.id, 'set_vel', random_direction(3000))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction())
+      actor.send(o.id, 'set_vel', random_direction(3000))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction())
+      actor.send(o.id, 'set_vel', random_direction(3000))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      return actor.send(o.id, 'set_vel', random_direction())
+      return actor.send(o.id, 'set_vel', random_direction(3000))
     end
   }
   _base_0.__index = _base_0
@@ -751,7 +750,7 @@ end
 do
   local _base_0 = {
     draw = function(self, msg, sender)
-      return love.graphics.draw(self.sprite, self.x, self.y)
+      return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)
@@ -822,7 +821,6 @@ do
         c,
         d
       }, self.sprite)
-      return self.body:setAngle(90)
     end,
     draw = function(self, msg, sender)
       local x1, y1, x2, y2, x3, y3, x4, y4 = self.body:getWorldPoints(self.shape:getPoints())
@@ -1499,6 +1497,7 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
+      self.mass = 5
       self.prismatic_connected = false
     end,
     __base = _base_0,
@@ -1553,6 +1552,7 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
+      self.mass = 5
       self.friction = 6
       self.bbox_radius = 10
       self.speed_max = 300
@@ -1574,6 +1574,10 @@ do
   local _parent_0 = BBoxed
   local _base_0 = {
     init = function(self, msg, sender)
+      return newbbox_quad(self)
+    end,
+    mixin = function(self, msg, sender)
+      print("mixxing in")
       return newbbox_quad(self)
     end,
     step = function(self, dt, sender)
@@ -1935,6 +1939,28 @@ do
   Ladderable = _class_0
 end
 do
+  local _base_0 = {
+    init = function(self, msg, sender)
+      return self.body:setAngle(90)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "RotatedRight"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  RotatedRight = _class_0
+end
+do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
@@ -2024,6 +2050,7 @@ do
       self:_mixin(QuadSprite)
       self:_mixin(DamageOnContact)
       self:_mixin(RemovedOnDamage)
+      self:_mixin(RotatedRight)
       self.dmg_pts = 10
       self.speed_max = 3000
     end
@@ -2531,9 +2558,73 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
+      self:add_handler("init", VendingmachinePhysical.init)
       self.sprite = love.graphics.newImage("assets/gfx/jihanki.png")
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(BBoxedQuad)
+      return self:_mixin(QuadSprite)
+    end,
+    init = function(self, msg, sender)
+      self.mass = 30
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "VendingmachinePhysical",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  VendingmachinePhysical = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:add_handler("dmg", Vendingmachine.dmg)
+      self.sprite = love.graphics.newImage("assets/gfx/jihanki.png")
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(Sprite)
+      return self:_mixin(Damageable)
+    end,
+    dmg = function(self, msg, sender)
+      local v = VendingmachinePhysical()
+      actor.send(v.id, 'set_pos', {
+        self.x,
+        self.y
+      })
+      local velx = 1
+      if math.random() < 0.5 then
+        velx = -1
+      end
+      actor.send(v.id, 'set_vel', {
+        velx * 3000,
+        -3000
+      })
+      return actor.send(self.id, 'remove')
     end
   }
   _base_0.__index = _base_0
