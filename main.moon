@@ -85,9 +85,31 @@ class Damageable
         if @hp <= 0
             actor.send @id, "die", "you're dead"
             actor.send @id, "remove"
-            actor.send Skull().id, 'set_pos', {@x, @y - 60}
-            actor.send Heart().id, 'set_pos', {@x, @y - 60}
-            actor.send Ribcage().id, 'set_pos', {@x, @y - 60}
+            --actor.send Heart().id, 'set_pos', {@x, @y - 60}
+
+            o = Skull()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
+
+            o = Ribcage()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
+
+            o = Limb()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
+
+            o = Limb()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
+
+            o = Limb()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
+
+            o = Limb()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
 
     hp: (msg, sender) =>
         @hp += msg.pts
@@ -881,6 +903,12 @@ class Heart extends Gib
 class Ribcage extends Gib
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/ribcage.png"
+        super!
+
+
+class Limb extends Gib
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/Limb.png"
         super!
 
 

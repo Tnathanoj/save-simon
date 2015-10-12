@@ -91,17 +91,59 @@ do
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
         actor.send(self.id, "remove")
-        actor.send(Skull().id, 'set_pos', {
+        local o = Skull()
+        actor.send(o.id, 'set_pos', {
           self.x,
           self.y - 60
         })
-        actor.send(Heart().id, 'set_pos', {
+        actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
+        })
+        o = Ribcage()
+        actor.send(o.id, 'set_pos', {
           self.x,
           self.y - 60
         })
-        return actor.send(Ribcage().id, 'set_pos', {
+        actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
+        })
+        o = Limb()
+        actor.send(o.id, 'set_pos', {
           self.x,
           self.y - 60
+        })
+        actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
+        })
+        o = Limb()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
+        })
+        o = Limb()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
+        })
+        o = Limb()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        return actor.send(o.id, 'set_vel', {
+          math.sin(math.random()) * 3000,
+          -math.sin(math.random()) * 3000
         })
       end
     end,
@@ -2129,6 +2171,44 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Ribcage = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/Limb.png")
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Limb",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Limb = _class_0
 end
 do
   local _parent_0 = Object
