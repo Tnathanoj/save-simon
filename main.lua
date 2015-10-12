@@ -91,8 +91,15 @@ do
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
         actor.send(self.id, "remove")
-        local b = Skull()
-        return actor.send(b.id, 'set_pos', {
+        actor.send(Skull().id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(Heart().id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        return actor.send(Ribcage().id, 'set_pos', {
           self.x,
           self.y - 60
         })
@@ -829,8 +836,8 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
-      self.bboxed_quad_w = 32
-      self.bboxed_quad_h = 32
+      self.bboxed_quad_w = self.sprite:getWidth()
+      self.bboxed_quad_h = self.sprite:getHeight()
     end,
     __base = _base_0,
     __name = "QuadSprite"
@@ -1928,6 +1935,7 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
@@ -1936,9 +1944,6 @@ do
       self:_mixin(RemovedOnDamage)
       self.dmg_pts = 10
       self.speed_max = 3000
-      self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
-      self.bboxed_quad_w = 9
-      self.bboxed_quad_h = 28
     end
   }
   _base_0.__index = _base_0
@@ -1978,8 +1983,45 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      self:_mixin(QuadSprite)
+      return self:_mixin(QuadSprite)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Gib",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Gib = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/skull.png")
+      return _parent_0.mixins(self)
     end
   }
   _base_0.__index = _base_0
@@ -2011,6 +2053,82 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Skull = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/heart.png")
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Heart",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Heart = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/ribcage.png")
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Ribcage",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Ribcage = _class_0
 end
 do
   local _parent_0 = Object

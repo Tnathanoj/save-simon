@@ -85,8 +85,9 @@ class Damageable
         if @hp <= 0
             actor.send @id, "die", "you're dead"
             actor.send @id, "remove"
-            b = Skull()
-            actor.send b.id, 'set_pos', {@x, @y - 60}
+            actor.send Skull().id, 'set_pos', {@x, @y - 60}
+            actor.send Heart().id, 'set_pos', {@x, @y - 60}
+            actor.send Ribcage().id, 'set_pos', {@x, @y - 60}
 
     hp: (msg, sender) =>
         @hp += msg.pts
@@ -302,10 +303,12 @@ class QuadSprite
     @needs = {'Drawable', 'BBoxedQuad'}
 
     new: =>
-        @bboxed_quad_w = 32
-        @bboxed_quad_h = 32
+        @bboxed_quad_w = @sprite\getWidth()
+        @bboxed_quad_h = @sprite\getHeight()
 
     init: (msg, sender) =>
+        --@bboxed_quad_w = @sprite.width
+        --@bboxed_quad_h = @sprite.height
         a = { 0, 0, 0, 0, 255, 255, 255 }
         b = { 0, 0, 1, 0, 255, 255, 255 }
         c = { 0, 0, 1, 1, 255, 255, 255 }
@@ -835,6 +838,8 @@ class Blood extends Object
 
 class ThrowingKunai extends Object
     mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/kunai.png"
+
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
@@ -846,22 +851,37 @@ class ThrowingKunai extends Object
         @dmg_pts = 10
 
         @speed_max = 3000
-        @sprite = love.graphics.newImage "assets/gfx/kunai.png"
 
-        @bboxed_quad_w = 9
-        @bboxed_quad_h = 28
+        --@bboxed_quad_w = 9
+        --@bboxed_quad_h = 28
 
         --@\_mixin ShortLived
         --@var_short_lived_life_time = 2
 
-
-class Skull extends Object
+class Gib extends Object
     mixins: =>
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
+
+
+class Skull extends Gib
+    mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/skull.png"
+        super!
+
+
+class Heart extends Gib
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/heart.png"
+        super!
+
+
+class Ribcage extends Gib
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/ribcage.png"
+        super!
 
 
 class Monster extends Object
