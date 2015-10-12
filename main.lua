@@ -750,7 +750,11 @@ end
 do
   local _base_0 = {
     draw = function(self, msg, sender)
-      return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
+      if self.world_obj then
+        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
+      else
+        return love.graphics.draw(self.sprite, self.x, self.y)
+      end
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)

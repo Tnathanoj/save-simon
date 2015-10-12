@@ -314,9 +314,12 @@ class Sprite
     @needs = {'Drawable'}
 
     draw: (msg, sender) =>
-        love.graphics.draw @sprite,
-                @x - @sprite\getWidth()/2,
-                @y + @world_obj.height - @sprite\getHeight()
+        if @world_obj
+            love.graphics.draw @sprite,
+                    @x - @sprite\getWidth()/2,
+                    @y + @world_obj.height - @sprite\getHeight()
+        else
+            love.graphics.draw @sprite, @x, @y
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
