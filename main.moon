@@ -915,6 +915,19 @@ class ThrowingKunai extends Object
         --@var_short_lived_life_time = 2
 
 
+class Healthpotion extends Object
+    mixins: =>
+        @\add_handler "init", VendingmachinePhysical.init
+        @sprite = love.graphics.newImage "assets/gfx/health_potion.png"
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin BBoxedQuad
+        @\_mixin QuadSprite
+
+    init: (msg, sender) =>
+        @mass = 2
+
+
 class Gib extends Object
     mixins: =>
         @\_mixin RoomOccupier

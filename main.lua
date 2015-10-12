@@ -2097,6 +2097,51 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:add_handler("init", VendingmachinePhysical.init)
+      self.sprite = love.graphics.newImage("assets/gfx/health_potion.png")
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(BBoxedQuad)
+      return self:_mixin(QuadSprite)
+    end,
+    init = function(self, msg, sender)
+      self.mass = 2
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Healthpotion",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Healthpotion = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
@@ -2568,7 +2613,6 @@ do
     mixins = function(self)
       self:add_handler("init", VendingmachinePhysical.init)
       self:add_handler("dmg", VendingmachinePhysical.dmg)
-      self:add_handler("draw", VendingmachinePhysical.draw)
       self.sprite = love.graphics.newImage("assets/gfx/jihanki.png")
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
@@ -2580,12 +2624,6 @@ do
       self.mass = 30
       self.hp = 1000
       self.speed_max = 5000
-      self.light_shape = self.room.lightWorld:newImage(self.sprite, self.x, self.y, self.sprite:getWidth(), self.sprite:getHeight(), 0, 0)
-      self.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
-      return self.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
-    end,
-    draw = function(self, msg, sender)
-      return self.light_shape:setPosition(self.x, self.y)
     end,
     dmg = function(self, msg, sender)
       local velx = 1
