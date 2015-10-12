@@ -90,61 +90,7 @@ do
       self.hp = self.hp - msg.pts
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
-        actor.send(self.id, "remove")
-        local o = Skull()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
-        o = Ribcage()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
-        o = Limb()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
-        o = Limb()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
-        o = Limb()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
-        o = Limb()
-        actor.send(o.id, 'set_pos', {
-          self.x,
-          self.y - 60
-        })
-        return actor.send(o.id, 'set_vel', {
-          math.sin(math.random()) * 3000,
-          -math.sin(math.random()) * 3000
-        })
+        return actor.send(self.id, "remove")
       end
     end,
     hp = function(self, msg, sender)
@@ -202,28 +148,77 @@ do
   }
   PainfulTouch = _class_0
 end
+local random_direction
+random_direction = function()
+  local magnitude = 3000
+  return {
+    magnitude - math.random() * magnitude * 2,
+    -math.sin(math.random()) * magnitude
+  }
+end
 do
   local _base_0 = {
-    step = function(self, dt, sender)
-      local contacts = self.body:getContactList()
-      for _, o in pairs(contacts) do
-        if o:isTouching() then
-          local fixtureA, fixtureB = o:getFixtures()
-          local a = fixtureA:getUserData()
-          local b = fixtureB:getUserData()
-          if a ~= nil and a.id ~= nil and b ~= nil and b.id ~= nil then
-            if a.id == self.id then
-              actor.send(b.id, 'dmg', {
-                pts = self.dmg_pts
-              })
-            else
-              actor.send(a.id, 'dmg', {
-                pts = self.dmg_pts
-              })
-            end
-          end
-        end
-      end
+    die = function(self, msg, sender)
+      local o = Skull()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction())
+      o = Ribcage()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction())
+      o = Limb()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction())
+      o = Limb()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction())
+      o = Limb()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction())
+      o = Limb()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      return actor.send(o.id, 'set_vel', random_direction())
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Gibable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Gibable = _class_0
+end
+do
+  local _base_0 = {
+    contact = function(self, other_id, sender)
+      return actor.send(other_id, 'dmg', {
+        pts = self.dmg_pts
+      })
     end
   }
   _base_0.__index = _base_0
@@ -240,6 +235,10 @@ do
     end
   })
   _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Contactable'
+  }
   DamageOnContact = _class_0
 end
 do
@@ -1081,6 +1080,46 @@ do
 end
 do
   local _base_0 = {
+    step = function(self, dt, sender)
+      local contacts = self.body:getContactList()
+      for _, o in pairs(contacts) do
+        if o:isTouching() then
+          local fixtureA, fixtureB = o:getFixtures()
+          local a = fixtureA:getUserData()
+          local b = fixtureB:getUserData()
+          if a ~= nil and a.id ~= nil and b ~= nil and b.id ~= nil then
+            if a.id == self.id then
+              actor.send(self.id, 'contact', b.id)
+            else
+              actor.send(self.id, 'contact', a.id)
+            end
+          end
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Contactable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Stepper'
+  }
+  Contactable = _class_0
+end
+do
+  local _base_0 = {
     touch = function(self, msg, sender)
       return actor.send(msg, 'hp', {
         pts = 10
@@ -1674,6 +1713,7 @@ do
       self:_mixin(Attacker)
       self:_mixin(Toucher)
       self:_mixin(PlayerBBoxed)
+      self:_mixin(Gibable)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
@@ -2223,6 +2263,7 @@ do
       self:_mixin(Attacker)
       self:_mixin(Walker)
       self:_mixin(PlayerBBoxed)
+      self:_mixin(Gibable)
       self:_mixin(Bleeds)
       self.anims['walking'] = anim("assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')

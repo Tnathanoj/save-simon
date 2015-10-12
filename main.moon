@@ -87,30 +87,6 @@ class Damageable
             actor.send @id, "remove"
             --actor.send Heart().id, 'set_pos', {@x, @y - 60}
 
-            o = Skull()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
-            o = Ribcage()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
-            o = Limb()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
-            o = Limb()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
-            o = Limb()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
-            o = Limb()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
-            actor.send o.id, 'set_vel', {math.sin(math.random()) * 3000, -math.sin(math.random()) * 3000}
-
     hp: (msg, sender) =>
         @hp += msg.pts
         @hp = @hp_max if @hp_max < @hp
@@ -123,19 +99,42 @@ class PainfulTouch
         actor.send msg, 'dmg', {pts: @dmg_pts}
 
 
+random_direction = ->
+    magnitude = 3000
+    return {magnitude - math.random() * magnitude * 2, -math.sin(math.random()) * magnitude}
+
+
+class Gibable
+    die: (msg, sender) =>
+        o = Skull()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+        o = Ribcage()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+        o = Limb()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+        o = Limb()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+        o = Limb()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+        o = Limb()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction()
+
+
 class DamageOnContact
-    step: (dt, sender) =>
-        contacts = @body\getContactList()
-        for _, o in pairs contacts
-            if o\isTouching()
-                fixtureA, fixtureB = o\getFixtures()
-                a = fixtureA\getUserData()
-                b = fixtureB\getUserData()
-                if a != nil and a.id != nil and b != nil and b.id != nil
-                    if a.id == @id
-                        actor.send b.id, 'dmg', {pts: @dmg_pts}
-                    else 
-                        actor.send a.id, 'dmg', {pts: @dmg_pts}
+    @needs = {'Contactable'}
+    contact: (other_id, sender) =>
+        actor.send other_id, 'dmg', {pts: @dmg_pts}
 
 
 -- Removes itself when it damages something
@@ -436,6 +435,24 @@ class Touchable
             actor.send @id, 'touch', o.id
 
 
+class Contactable
+    @needs = {'Stepper'}
+    step: (dt, sender) =>
+        contacts = @body\getContactList()
+        for _, o in pairs contacts
+            if o\isTouching()
+                fixtureA, fixtureB = o\getFixtures()
+                a = fixtureA\getUserData()
+                b = fixtureB\getUserData()
+                if a != nil and a.id != nil and b != nil and b.id != nil
+                    if a.id == @id
+                        actor.send @id, 'contact', b.id
+                        --actor.send b.id, 'dmg', {pts: @dmg_pts}
+                    else 
+                        actor.send @id, 'contact', a.id
+                        --actor.send a.id, 'dmg', {pts: @dmg_pts}
+
+
 -- Gives HP
 class Hpbonus
     touch: (msg, sender) =>
@@ -719,6 +736,7 @@ class Player extends Object
         --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
         @\_mixin PlayerBBoxed
+        @\_mixin Gibable
         --@\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
@@ -924,6 +942,7 @@ class Monster extends Object
         @\_mixin Attacker
         @\_mixin Walker
         @\_mixin PlayerBBoxed
+        @\_mixin Gibable
         @\_mixin Bleeds
         @anims['walking'] = anim "assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0
         @anims["walking"]\setMode('once')
