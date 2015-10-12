@@ -753,7 +753,7 @@ do
       if self.world_obj then
         return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
       else
-        return love.graphics.draw(self.sprite, self.x, self.y)
+        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2)
       end
     end,
     draw_done = function(self, msg, sender)
@@ -1237,7 +1237,11 @@ do
             break
           end
           actor.send(o.id, 'dmg', {
-            pts = self.dmg_pts
+            pts = self.dmg_pts,
+            atk_origin = {
+              self.x,
+              self.y
+            }
           })
           _continue_0 = true
         until true
@@ -2563,14 +2567,32 @@ do
   local _base_0 = {
     mixins = function(self)
       self:add_handler("init", VendingmachinePhysical.init)
+      self:add_handler("dmg", VendingmachinePhysical.dmg)
       self.sprite = love.graphics.newImage("assets/gfx/jihanki.png")
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      return self:_mixin(QuadSprite)
+      self:_mixin(QuadSprite)
+      return self:_mixin(Damageable)
     end,
     init = function(self, msg, sender)
       self.mass = 30
+      self.hp = 1000
+      self.speed_max = 5000
+    end,
+    dmg = function(self, msg, sender)
+      local velx = 1
+      if msg.atk_origin then
+        if msg.atk_origin[1] < self.x then
+          velx = 1
+        else
+          velx = -1
+        end
+      end
+      return actor.send(self.id, 'set_vel', {
+        velx * 5000,
+        -3000
+      })
     end
   }
   _base_0.__index = _base_0

@@ -316,10 +316,12 @@ class Sprite
     draw: (msg, sender) =>
         if @world_obj
             love.graphics.draw @sprite,
-                    @x - @sprite\getWidth()/2,
-                    @y + @world_obj.height - @sprite\getHeight()
+                @x - @sprite\getWidth()/2,
+                @y + @world_obj.height - @sprite\getHeight()
         else
-            love.graphics.draw @sprite, @x, @y
+            love.graphics.draw @sprite,
+                @x - @sprite\getWidth()/2,
+                @y - @sprite\getHeight()/2
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -451,10 +453,8 @@ class Contactable
                 if a != nil and a.id != nil and b != nil and b.id != nil
                     if a.id == @id
                         actor.send @id, 'contact', b.id
-                        --actor.send b.id, 'dmg', {pts: @dmg_pts}
                     else 
                         actor.send @id, 'contact', a.id
-                        --actor.send a.id, 'dmg', {pts: @dmg_pts}
 
 
 -- Gives HP
@@ -498,7 +498,7 @@ class Attacker
             continue if o.id == @id
             continue if o.faction == @faction
             continue if @attack_range < distance(@x, @y, o.x, o.y)
-            actor.send o.id, 'dmg', {pts: @dmg_pts}
+            actor.send o.id, 'dmg', {pts: @dmg_pts, atk_origin: {@x, @y}}
         actor.send @id, 'set_anim', 'attacking'
 
 
@@ -1038,14 +1038,27 @@ class Turkey extends Object
 class VendingmachinePhysical extends Object
     mixins: =>
         @\add_handler "init", VendingmachinePhysical.init
+        @\add_handler "dmg", VendingmachinePhysical.dmg
         @sprite = love.graphics.newImage "assets/gfx/jihanki.png"
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
+        @\_mixin Damageable
 
     init: (msg, sender) =>
         @mass = 30
+        @hp = 1000
+        @speed_max = 5000
+
+    dmg: (msg, sender) =>
+        velx = 1
+        if msg.atk_origin
+            if msg.atk_origin[1] < @x
+                velx = 1
+            else
+                velx = -1
+        actor.send @id, 'set_vel', {velx * 5000, -3000}
 
 
 class Vendingmachine extends Object
