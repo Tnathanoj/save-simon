@@ -1322,6 +1322,35 @@ do
   }
   Controlled = _class_0
 end
+do
+  local _base_0 = {
+    activate = function(self, msg, sender)
+      return actor.send(sender, 'enter_room', {
+        ['door'] = self
+      })
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Doorable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Activatable',
+    'RoomOccupier'
+  }
+  Doorable = _class_0
+end
 local sign
 sign = function(x)
   if x < 0 then
@@ -2302,16 +2331,9 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:_mixin(RoomOccupier)
       self:_mixin(Sprite)
-      self:_mixin(Activatable)
+      self:_mixin(Doorable)
       self.sprite = love.graphics.newImage("assets/gfx/door.png")
-      return self:add_handler("activate", Door.activate)
-    end,
-    activate = function(self, msg, sender)
-      return actor.send(sender, 'enter_room', {
-        ['door'] = self
-      })
     end
   }
   _base_0.__index = _base_0
@@ -2348,8 +2370,8 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:_mixin(RoomOccupier)
       self:_mixin(Sprite)
+      self:_mixin(Doorable)
       self.sprite = love.graphics.newImage("assets/gfx/upstairs.png")
     end
   }
@@ -2387,8 +2409,8 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:_mixin(RoomOccupier)
       self:_mixin(Sprite)
+      self:_mixin(Doorable)
       self.sprite = love.graphics.newImage("assets/gfx/downstairs.png")
     end
   }

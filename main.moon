@@ -509,6 +509,12 @@ class Controlled
             actor.send @id, 'move_left', @walk_speed * 0.2
 
 
+class Doorable
+    @needs = {'Activatable', 'RoomOccupier'}
+    activate: (msg, sender) =>
+        actor.send sender, 'enter_room', {'door': @}
+
+
 sign = (x) ->
     if x < 0
         return -1
@@ -954,27 +960,23 @@ class Vendingmachine extends Object
 
 class Door extends Object
     mixins: =>
-        @\_mixin RoomOccupier
         @\_mixin Sprite
-        @\_mixin Activatable
+        @\_mixin Doorable
         @sprite = love.graphics.newImage "assets/gfx/door.png"
-        @\add_handler "activate", Door.activate
-
-    activate: (msg, sender) =>
-        actor.send sender, 'enter_room', {'door': @}
+        --@\add_handler "activate", Door.activate
 
 
 class Upstairs extends Object
     mixins: =>
-        @\_mixin RoomOccupier
         @\_mixin Sprite
+        @\_mixin Doorable
         @sprite = love.graphics.newImage "assets/gfx/upstairs.png"
 
 
 class Downstairs extends Object
     mixins: =>
-        @\_mixin RoomOccupier
         @\_mixin Sprite
+        @\_mixin Doorable
         @sprite = love.graphics.newImage "assets/gfx/downstairs.png"
 
 

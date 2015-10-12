@@ -108,29 +108,6 @@ function new_room(map_file, object_create)
 
     shuffleTable(room.map.layers.Objects.objects)
 
-    for k, obj in ipairs(room.map.layers.Objects.objects) do
-        object_create(obj, room)
-        if obj.type == 'light' then
-            obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
-            obj.light:setRange(obj.properties.range or 300)
-            if obj.properties.colour then
-                local r, g, b = string.match(obj.properties.colour, "(..)(..)(..)")
-                obj.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
-            end
-        elseif obj.type == 'vendingmachine' then
-            obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
-            --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
-	    obj.light_shape = room.lightWorld:newImage(obj.img, obj.x + obj.width / 2, obj.y + obj.height / 2 + 4, obj.width, obj.height, 0, 0)
-            obj.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
-            obj.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
-        elseif obj.type == 'invisiblewall' then
-            local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
-            body:setMass(100000)
-            local shape = love.physics.newRectangleShape(obj.width * 2, obj.height)
-            local f = love.physics.newFixture(body, shape, 1)
-        end
-    end
-
     function spriteLayer:update(dt)
         for _, obj in pairs(self.objects) do
             if obj.o and obj.o.update then
@@ -241,6 +218,34 @@ function load_levels(object_create)
     end
 
     connect_doors(levels)
+
+    for k, level in pairs(levels) do
+        for j, room in pairs(level.rooms) do
+            for k, obj in ipairs(room.map.layers.Objects.objects) do
+                object_create(obj, room)
+                if obj.type == 'light' then
+                    obj.light = room.lightWorld:newLight(obj.x, obj.y, 255, 255, 255)--, 300)
+                    obj.light:setRange(obj.properties.range or 300)
+                    if obj.properties.colour then
+                        local r, g, b = string.match(obj.properties.colour, "(..)(..)(..)")
+                        obj.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
+                    end
+                elseif obj.type == 'vendingmachine' then
+                    obj.img = love.graphics.newImage("assets/gfx/jihanki.png")
+                    --obj.light_shape = room.lightWorld:newRectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
+                    obj.light_shape = room.lightWorld:newImage(obj.img, obj.x + obj.width / 2, obj.y + obj.height / 2 + 4, obj.width, obj.height, 0, 0)
+                    obj.light_shape:setNormalMap(love.graphics.newImage("assets/gfx/jihanki_normal.png"))
+                    obj.light_shape:setGlowMap(love.graphics.newImage("assets/gfx/jihanki_glow.png"))
+                elseif obj.type == 'invisiblewall' then
+                    local body = love.physics.newBody(room.world, obj.x, obj.y, "static")
+                    body:setMass(100000)
+                    local shape = love.physics.newRectangleShape(obj.width * 2, obj.height)
+                    local f = love.physics.newFixture(body, shape, 1)
+                end
+            end
+        end
+    end
+
 
     return levels
 end
