@@ -117,25 +117,23 @@ class Gibable
         actor.send o.id, 'set_pos', {@x, @y - 60}
         actor.send o.id, 'set_vel', random_direction(magnitude)
 
+        o = Heart()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction(magnitude)
+
+        for i = 1, 4
+            o = Giblet()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
         o = Ribcage()
         actor.send o.id, 'set_pos', {@x, @y - 60}
         actor.send o.id, 'set_vel', random_direction(magnitude)
 
-        o = Limb()
-        actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(magnitude)
-
-        o = Limb()
-        actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(magnitude)
-
-        o = Limb()
-        actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(magnitude)
-
-        o = Limb()
-        actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(magnitude)
+        for i = 1, 4
+            o = Limb()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
 class DamageOnContact
@@ -965,6 +963,16 @@ class Heart extends Gib
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/heart.png"
         super!
+        @\_mixin ShortLived
+        @var_short_lived_life_time = 1
+
+
+class Giblet extends Gib
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/giblet.png"
+        super!
+        @\_mixin ShortLived
+        @var_short_lived_life_time = 1
 
 
 class Ribcage extends Gib
