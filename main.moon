@@ -758,7 +758,7 @@ class Player extends Object
     mixins: =>
         @\_mixin Damageable
         @\_mixin RoomOccupier
-        @\_mixin MouseTeleporter
+        --@\_mixin MouseTeleporter
         @\_mixin Animated
         @\_mixin WalkerJumper
         @\_mixin Croucher
@@ -939,6 +939,24 @@ class ThrowingKunai extends Object
 
         --@\_mixin ShortLived
         --@var_short_lived_life_time = 2
+
+
+class CinderBlock extends Object
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/cinderblock.png"
+
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin BBoxedQuad
+        @\_mixin QuadSprite
+        @\_mixin DamageOnContact
+        @\_mixin RemovedOnDamage
+        --@\_mixin NoDamageIfStill
+        --@\_mixin RotatedRight
+
+        @dmg_pts = 10
+
+        @speed_max = 3000
 
 
 class Healthpotion extends Object
@@ -1246,6 +1264,9 @@ love.mousereleased = (x, y, button) ->
     if button == "l"
         d\_start!
         actor.send d.id, 'click', {x, y}
+
+        o = CinderBlock()
+        actor.send o.id, 'set_pos', {x, y}
 
 
 -- A level is made up of many rooms

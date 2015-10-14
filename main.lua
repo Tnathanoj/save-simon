@@ -1751,7 +1751,6 @@ do
     mixins = function(self)
       self:_mixin(Damageable)
       self:_mixin(RoomOccupier)
-      self:_mixin(MouseTeleporter)
       self:_mixin(Animated)
       self:_mixin(WalkerJumper)
       self:_mixin(Croucher)
@@ -2148,6 +2147,51 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   ThrowingKunai = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/cinderblock.png")
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(BBoxedQuad)
+      self:_mixin(QuadSprite)
+      self:_mixin(DamageOnContact)
+      self:_mixin(RemovedOnDamage)
+      self.dmg_pts = 10
+      self.speed_max = 3000
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "CinderBlock",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  CinderBlock = _class_0
 end
 do
   local _parent_0 = Object
@@ -3152,7 +3196,12 @@ end
 love.mousereleased = function(x, y, button)
   if button == "l" then
     d:_start()
-    return actor.send(d.id, 'click', {
+    actor.send(d.id, 'click', {
+      x,
+      y
+    })
+    local o = CinderBlock()
+    return actor.send(o.id, 'set_pos', {
       x,
       y
     })
