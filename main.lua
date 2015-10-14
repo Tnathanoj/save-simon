@@ -158,42 +158,43 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
+      local magnitude = 800
       local o = Skull()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction(3000))
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
       o = Ribcage()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction(3000))
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction(3000))
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction(3000))
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      actor.send(o.id, 'set_vel', random_direction(3000))
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
       o = Limb()
       actor.send(o.id, 'set_pos', {
         self.x,
         self.y - 60
       })
-      return actor.send(o.id, 'set_vel', random_direction(3000))
+      return actor.send(o.id, 'set_vel', random_direction(magnitude))
     end
   }
   _base_0.__index = _base_0
@@ -2142,10 +2143,14 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:add_handler("init", Gib.init)
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
       return self:_mixin(QuadSprite)
+    end,
+    init = function(self, msg, sender)
+      self.mass = 1
     end
   }
   _base_0.__index = _base_0
@@ -2351,8 +2356,9 @@ do
       return actor.send(self.id, 'cmd_attack')
     end,
     draw = function(self, msg, sender)
+      local y = math.cos(love.timer.getTime()) * 5
       local x = math.sin(love.timer.getTime()) * 10
-      return love.graphics.draw(self.sprite2, x + self.x - self.sprite2:getWidth() / 2, self.y - self.sprite2:getHeight() / 2)
+      return love.graphics.draw(self.sprite2, x + self.x - self.sprite2:getWidth() / 2, y + self.y - self.sprite2:getHeight() / 2)
     end
   }
   _base_0.__index = _base_0

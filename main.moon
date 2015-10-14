@@ -106,29 +106,30 @@ random_direction = (magnitude) ->
 
 class Gibable
     die: (msg, sender) =>
+        magnitude = 800
         o = Skull()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
         o = Ribcage()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
         o = Limb()
         actor.send o.id, 'set_pos', {@x, @y - 60}
-        actor.send o.id, 'set_vel', random_direction(3000)
+        actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
 class DamageOnContact
@@ -930,10 +931,14 @@ class Healthpotion extends Object
 
 class Gib extends Object
     mixins: =>
+        @\add_handler "init", Gib.init
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
+
+    init: (msg, sender) =>
+        @mass = 1
 
 
 class Skull extends Gib
@@ -989,10 +994,11 @@ class Eye extends Object
         actor.send @id, 'cmd_attack'
 
     draw: (msg, sender) =>
+        y = math.cos(love.timer.getTime()) * 5
         x = math.sin(love.timer.getTime()) * 10
         love.graphics.draw @sprite2,
             x + @x - @sprite2\getWidth()/2,
-            @y - @sprite2\getHeight()/2
+            y + @y - @sprite2\getHeight()/2
 
 
 
