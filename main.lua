@@ -86,7 +86,8 @@ do
       end
     end,
     dmg = function(self, msg, sender)
-      actor.send(sender, "dmging", self.id)
+      actor.send(sender, "dmging", msg)
+      actor.send(self.id, "pre_dmg", msg)
       self.hp = self.hp - msg.pts
       if self.hp <= 0 then
         actor.send(self.id, "die", "you're dead")
@@ -122,8 +123,8 @@ do
 end
 do
   local _base_0 = {
-    touch = function(self, msg, sender)
-      return actor.send(msg, 'dmg', {
+    touch = function(self, other_id, sender)
+      return actor.send(other_id, 'dmg', {
         pts = self.dmg_pts
       })
     end
@@ -2080,10 +2081,33 @@ do
   Blood = _class_0
 end
 do
+  local _base_0 = {
+    dmging = function(self, msg, sender)
+      msg.piercing = true
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Piercingattack"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Piercingattack = _class_0
+end
+do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/kunai.png")
+      self:_mixin(Piercingattack)
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
@@ -2409,10 +2433,37 @@ do
   Limb = _class_0
 end
 do
+  local _base_0 = {
+    pre_dmg = function(self, msg, sender)
+      if msg.piercing then
+        return actor.send(self.id, 'dmg', {
+          pts = msg.pts * 10
+        })
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Piercingvunerable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Piercingvunerable = _class_0
+end
+do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
       self:add_handler("init", Eye.init)
+      self:_mixin(Piercingvunerable)
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
       self:_mixin(Controlled)

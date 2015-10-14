@@ -77,10 +77,10 @@ class Damageable
                 table.remove damageables, key
 
     dmg: (msg, sender) =>
+        actor.send sender, "dmging", msg
+        actor.send @id, "pre_dmg", msg
 
         --print(string.format('msg from:%s msg:%s', sender, msg.pts))
-
-        actor.send sender, "dmging", @id
 
         @hp -= msg.pts
         if @hp <= 0
@@ -100,10 +100,10 @@ class PainfulTouch
     --    @var_painful_touch_time = 1
     --    @last_painful_touch = 0
 
-    touch: (msg, sender) =>
+    touch: (other_id, sender) =>
         --if @last_painful_touch < love.timer.getTime()
         --@last_painful_touch = var_painful_touch_time + love.timer.getTime()
-        actor.send msg, 'dmg', {pts: @dmg_pts}
+        actor.send other_id, 'dmg', {pts: @dmg_pts}
 
 
 random_direction = (magnitude) ->
@@ -911,10 +911,16 @@ class Blood extends Object
         @\_mixin ShortLived
 
 
+class Piercingattack
+    dmging: (msg, sender) =>
+        msg.piercing = true
+
+
 class ThrowingKunai extends Object
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/kunai.png"
 
+        @\_mixin Piercingattack
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
@@ -996,10 +1002,18 @@ class Limb extends Gib
         super!
 
 
+class Piercingvunerable
+    pre_dmg: (msg, sender) =>
+        if msg.piercing
+            -- TODO: add critical indicator
+            actor.send @id, 'dmg', {pts: msg.pts * 10}
+
+
 class Eye extends Object
     mixins: =>
         @\add_handler "init", Eye.init
 
+        @\_mixin Piercingvunerable
         @\_mixin RoomOccupier
         --@\_mixin Animated
         @\_mixin Damageable
