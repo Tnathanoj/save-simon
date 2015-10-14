@@ -159,6 +159,36 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
+      local magnitude = 300
+      for i = 1, 10 do
+        local o = Smoke()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y
+        })
+        actor.send(o.id, 'set_vel', random_direction(magnitude))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "SmokeWhenDead"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  SmokeWhenDead = _class_0
+end
+do
+  local _base_0 = {
+    die = function(self, msg, sender)
       local magnitude = 800
       local o = Skull()
       actor.send(o.id, 'set_pos', {
@@ -1921,7 +1951,7 @@ do
   local _base_0 = {
     step = function(self, dt, sender)
       self.ps:update(dt)
-      return self.ps:setPosition(self.x, self.y + 10)
+      return self.ps:setPosition(self.x, self.y)
     end,
     draw = function(self, msg, sender)
       return love.graphics.draw(self.ps)
@@ -1932,9 +1962,9 @@ do
     __init = function(self)
       local img = love.graphics.newImage("assets/gfx/smoke_breathable.png")
       self.ps = love.graphics.newParticleSystem(img, 100)
-      self.ps:setParticleLifetime(1, 1)
-      self.ps:setEmissionRate(5)
-      self.ps:setSizes(0.5, 0.25, 0.12, 0.06)
+      self.ps:setParticleLifetime(1, 5)
+      self.ps:setEmissionRate(10)
+      self.ps:setSizes(0.9, 0.25, 0.12, 0.06)
       self.ps:setLinearAcceleration(-20, -20, 20, 20)
       self.ps:setRotation(-20, 20)
       return self.ps:setColors(255, 255, 255, 255, 255, 255, 255, 0)
@@ -1999,6 +2029,46 @@ do
   })
   _base_0.__class = _class_0
   RotatedRight = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(Smokey)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      return self:_mixin(ShortLived)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Smoke",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Smoke = _class_0
 end
 do
   local _parent_0 = Object
@@ -2157,7 +2227,6 @@ do
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
       self:_mixin(QuadSprite)
-      self:_mixin(DamageOnContact)
       self:_mixin(RemovedOnDamage)
       self.dmg_pts = 10
       self.speed_max = 3000
@@ -2725,12 +2794,15 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
       self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
+      self:_mixin(QuadSprite)
       self:_mixin(Touchable)
       self:_mixin(Poison)
       self:_mixin(Pickupable)
-      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
+      self:_mixin(Damageable)
+      self:_mixin(SmokeWhenDead)
+      self.hp = 1
     end
   }
   _base_0.__index = _base_0

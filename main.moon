@@ -110,6 +110,15 @@ random_direction = (magnitude) ->
     return {magnitude - math.random() * magnitude * 2, -math.sin(math.random()) * magnitude}
 
 
+class SmokeWhenDead
+    die: (msg, sender) =>
+        magnitude = 300
+        for i = 1, 10
+            o = Smoke()
+            actor.send o.id, 'set_pos', {@x, @y}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
+
 class Gibable
     die: (msg, sender) =>
         magnitude = 800
@@ -773,6 +782,7 @@ class Player extends Object
         @\_mixin Activator
         @\_mixin Bleeds
         @\_mixin RunSmokey
+        --@\_mixin Smokey
         @\_mixin Controlled
         @\_mixin Thrower
         --@\_mixin MouseFollower
@@ -856,7 +866,7 @@ class Smokey
 
     step: (dt, sender) =>
         @ps\update dt
-        @ps\setPosition @x, @y + 10
+        @ps\setPosition @x, @y
 
     draw: (msg, sender) =>
         love.graphics.draw(@ps)
@@ -864,10 +874,10 @@ class Smokey
     new: =>
         img = love.graphics.newImage "assets/gfx/smoke_breathable.png"
         @ps = love.graphics.newParticleSystem(img, 100)
-        @ps\setParticleLifetime(1, 1)
-        @ps\setEmissionRate(5)
+        @ps\setParticleLifetime(1, 5)
+        @ps\setEmissionRate(10)
         --@ps\setSizeVariation(0.9)
-        @ps\setSizes(0.5, 0.25, 0.12, 0.06)
+        @ps\setSizes(0.9, 0.25, 0.12, 0.06)
         @ps\setLinearAcceleration(-20, -20, 20, 20)
         @ps\setRotation(-20, 20)
         @ps\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
@@ -882,6 +892,16 @@ class Ladderable
 class RotatedRight
     init: (msg, sender) =>
         @body\setAngle(90)
+
+
+class Smoke extends Object
+    mixins: =>
+        @\_mixin Smokey
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin ShortLived
+        --@\_mixin BBoxedQuad
+        --@\_mixin QuadSprite
 
 
 class Ladder extends Object
@@ -949,7 +969,7 @@ class CinderBlock extends Object
         @\_mixin Stepper
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
-        @\_mixin DamageOnContact
+        --@\_mixin DamageOnContact
         @\_mixin RemovedOnDamage
         --@\_mixin NoDamageIfStill
         --@\_mixin RotatedRight
@@ -957,6 +977,12 @@ class CinderBlock extends Object
         @dmg_pts = 10
 
         @speed_max = 3000
+
+--        @\add_handler "init", CinderBlock.init
+
+    --init: (msg, sender) =>
+        --r = @room.lightWorld\newPolygon(@body\getWorldPoints(@shape\getPoints()))
+        --r\setNormalMap2(@sprite, 0, 0, 32, 32)
 
 
 class Healthpotion extends Object
@@ -1134,12 +1160,21 @@ class Antidoteflask extends Object
 
 class Poisonflask extends Object
     mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/poison.png"
         @\_mixin RoomOccupier
-        @\_mixin Sprite
+        @\_mixin QuadSprite
         @\_mixin Touchable
         @\_mixin Poison
         @\_mixin Pickupable
-        @sprite = love.graphics.newImage "assets/gfx/poison.png"
+        @\_mixin Damageable
+        @\_mixin SmokeWhenDead
+
+        @hp = 1
+
+--        @\add_handler "dmg", VendingmachinePhysical.dmg
+
+--    dmg: (msg, sender) =>
+--        actor.send @id, 'set_vel', {velx * 5000, -3000}
 
 
 class Goldbar extends Object
