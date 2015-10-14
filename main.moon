@@ -96,7 +96,13 @@ class Damageable
 class PainfulTouch
     @needs = {'Touchable'}
 
+    --new: =>
+    --    @var_painful_touch_time = 1
+    --    @last_painful_touch = 0
+
     touch: (msg, sender) =>
+        --if @last_painful_touch < love.timer.getTime()
+        --@last_painful_touch = var_painful_touch_time + love.timer.getTime()
         actor.send msg, 'dmg', {pts: @dmg_pts}
 
 
@@ -535,7 +541,7 @@ class Activator
 
 
 class Controlled
-    @needs = {'Animated', 'Stepper', 'TouchingGroundChecker'}
+    @needs = {'Stepper', 'TouchingGroundChecker'}
 
     new: =>
         @hspeed = 200
@@ -582,6 +588,14 @@ clamp_camera = (self) ->
         self._x = left_hand_side
     elseif right_hand_side < self._x
         self._x = right_hand_side
+
+
+class Hovers
+    step: (dt, sender) =>
+        if @touching_ground
+            @body\applyLinearImpulse(0, -math.random() * 500)
+        else if 200 < @y
+            @body\applyLinearImpulse(0, -100)
 
 
 class PlayerBBoxed
@@ -967,11 +981,14 @@ class Limb extends Gib
 
 class Eye extends Object
     mixins: =>
+        @\add_handler "init", Eye.init
+
         @\_mixin RoomOccupier
         --@\_mixin Animated
         @\_mixin Damageable
         --@\_mixin MouseFollower
-        --@\_mixin PlayerFollower
+        @\_mixin Controlled
+        @\_mixin PlayerFollower
         --@\_mixin FacesDirectionByVelocity
         --@\_mixin Toucher
         --@\_mixin Attacker
@@ -981,6 +998,10 @@ class Eye extends Object
         @\_mixin BBoxed
         @\_mixin Gibable
         @\_mixin Bleeds
+        @\_mixin Hovers
+
+        @\_mixin DamageOnContact
+        @dmg_pts = 1
 
         @sprite = love.graphics.newImage "assets/gfx/eye_ball.png"
         @sprite2 = love.graphics.newImage "assets/gfx/pupil.png"
@@ -990,16 +1011,18 @@ class Eye extends Object
         @attack_cooldown_time = 1.5
         @faction = 'bad'
 
+    init: (msg, sender) =>
+        @bbox_radius = 30
+
     step: (dt, sender) =>
         actor.send @id, 'cmd_attack'
 
     draw: (msg, sender) =>
-        y = math.cos(love.timer.getTime()) * 5
-        x = math.sin(love.timer.getTime()) * 10
+        y = math.cos(love.timer.getTime() * 10) * 5
+        x = math.sin(love.timer.getTime() * 10) * 10
         love.graphics.draw @sprite2,
             x + @x - @sprite2\getWidth()/2,
             y + @y - @sprite2\getHeight()/2
-
 
 
 class Monster extends Object

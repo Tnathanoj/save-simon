@@ -1411,7 +1411,6 @@ do
   _base_0.__class = _class_0
   local self = _class_0
   self.needs = {
-    'Animated',
     'Stepper',
     'TouchingGroundChecker'
   }
@@ -1469,6 +1468,34 @@ clamp_camera = function(self)
   elseif right_hand_side < self._x then
     self._x = right_hand_side
   end
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      if self.touching_ground then
+        return self.body:applyLinearImpulse(0, -math.random() * 500)
+      else
+        if 200 < self.y then
+          return self.body:applyLinearImpulse(0, -100)
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Hovers"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Hovers = _class_0
 end
 do
   local _base_0 = {
@@ -2339,12 +2366,18 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:add_handler("init", Eye.init)
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
+      self:_mixin(Controlled)
+      self:_mixin(PlayerFollower)
       self:_mixin(Sprite)
       self:_mixin(BBoxed)
       self:_mixin(Gibable)
       self:_mixin(Bleeds)
+      self:_mixin(Hovers)
+      self:_mixin(DamageOnContact)
+      self.dmg_pts = 1
       self.sprite = love.graphics.newImage("assets/gfx/eye_ball.png")
       self.sprite2 = love.graphics.newImage("assets/gfx/pupil.png")
       self:add_handler("step", Eye.step)
@@ -2352,12 +2385,15 @@ do
       self.attack_cooldown_time = 1.5
       self.faction = 'bad'
     end,
+    init = function(self, msg, sender)
+      self.bbox_radius = 30
+    end,
     step = function(self, dt, sender)
       return actor.send(self.id, 'cmd_attack')
     end,
     draw = function(self, msg, sender)
-      local y = math.cos(love.timer.getTime()) * 5
-      local x = math.sin(love.timer.getTime()) * 10
+      local y = math.cos(love.timer.getTime() * 10) * 5
+      local x = math.sin(love.timer.getTime() * 10) * 10
       return love.graphics.draw(self.sprite2, x + self.x - self.sprite2:getWidth() / 2, y + self.y - self.sprite2:getHeight() / 2)
     end
   }
