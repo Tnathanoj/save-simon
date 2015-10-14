@@ -964,6 +964,7 @@ class Heart extends Gib
         @sprite = love.graphics.newImage "assets/gfx/heart.png"
         super!
         @\_mixin ShortLived
+        --@\_mixin Bloody
         @var_short_lived_life_time = 1
 
 
@@ -972,6 +973,7 @@ class Giblet extends Gib
         @sprite = love.graphics.newImage "assets/gfx/giblet.png"
         super!
         @\_mixin ShortLived
+        --@\_mixin Bloody
         @var_short_lived_life_time = 1
 
 
