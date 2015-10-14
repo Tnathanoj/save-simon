@@ -214,14 +214,20 @@ end
 do
   local _base_0 = {
     contact = function(self, other_id, sender)
-      return actor.send(other_id, 'dmg', {
-        pts = self.dmg_pts
-      })
+      if self.last_damage_on_contact <= love.timer.getTime() then
+        self.last_damage_on_contact = self.var_damage_on_contact_time + love.timer.getTime()
+        return actor.send(other_id, 'dmg', {
+          pts = self.dmg_pts
+        })
+      end
     end
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
-    __init = function() end,
+    __init = function(self)
+      self.var_damage_on_contact_time = 0
+      self.last_damage_on_contact = 0
+    end,
     __base = _base_0,
     __name = "DamageOnContact"
   }, {
@@ -2417,12 +2423,13 @@ do
       self:_mixin(Bleeds)
       self:_mixin(Hovers)
       self:_mixin(DamageOnContact)
-      self.dmg_pts = 1
+      self.dmg_pts = 20
       self.sprite = love.graphics.newImage("assets/gfx/eye_ball.png")
       self.sprite2 = love.graphics.newImage("assets/gfx/pupil.png")
       self:add_handler("step", Eye.step)
       self:add_handler("draw", Eye.draw)
       self.attack_cooldown_time = 1.5
+      self.var_damage_on_contact_time = 1
       self.faction = 'bad'
     end,
     init = function(self, msg, sender)

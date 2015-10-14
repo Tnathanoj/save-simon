@@ -138,8 +138,15 @@ class Gibable
 
 class DamageOnContact
     @needs = {'Contactable'}
+
+    new: =>
+        @var_damage_on_contact_time = 0
+        @last_damage_on_contact = 0
+
     contact: (other_id, sender) =>
-        actor.send other_id, 'dmg', {pts: @dmg_pts}
+        if @last_damage_on_contact <= love.timer.getTime()
+            @last_damage_on_contact = @var_damage_on_contact_time + love.timer.getTime()
+            actor.send other_id, 'dmg', {pts: @dmg_pts}
 
 
 -- Removes itself when it damages something
@@ -1011,7 +1018,7 @@ class Eye extends Object
         @\_mixin Hovers
 
         @\_mixin DamageOnContact
-        @dmg_pts = 1
+        @dmg_pts = 20
 
         @sprite = love.graphics.newImage "assets/gfx/eye_ball.png"
         @sprite2 = love.graphics.newImage "assets/gfx/pupil.png"
@@ -1019,6 +1026,7 @@ class Eye extends Object
         @\add_handler "step", Eye.step
         @\add_handler "draw", Eye.draw
         @attack_cooldown_time = 1.5
+        @var_damage_on_contact_time = 1
         @faction = 'bad'
 
     init: (msg, sender) =>
