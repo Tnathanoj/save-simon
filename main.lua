@@ -2686,7 +2686,7 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:add_handler("init", SteelBall.init)
+      self:add_handler("init", Steelball.init)
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
       self:_mixin(Controlled)
@@ -2696,7 +2696,7 @@ do
       self.dmg_pts = 20
       self.sprite = love.graphics.newImage("assets/gfx/steel_ball.png")
       self.faction = 'bad'
-      return self:add_handler("contact", SteelBall.contact)
+      return self:add_handler("contact", Steelball.contact)
     end,
     contact = function(self, other_id, sender)
       return self.body:applyLinearImpulse(0, -100 - math.random() * 500)
@@ -2713,7 +2713,7 @@ do
       return _parent_0.__init(self, ...)
     end,
     __base = _base_0,
-    __name = "SteelBall",
+    __name = "Steelball",
     __parent = _parent_0
   }, {
     __index = function(cls, name)
@@ -2734,7 +2734,7 @@ do
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
-  SteelBall = _class_0
+  Steelball = _class_0
 end
 do
   local _parent_0 = Object
@@ -3363,6 +3363,73 @@ do
   end
   Spike = _class_0
 end
+do
+  local _base_0 = {
+    init = function(self, msg, sender)
+      self.light = self.room.lightWorld:newLight(self.world_obj.x, self.world_obj.y, 255, 255, 255)
+      self.light:setRange(self.world_obj.properties.range or 300)
+      if self.world_obj.properties.colour then
+        local r, g, b = string.match(self.world_obj.properties.colour, "(..)(..)(..)")
+        return self.light:setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Lights"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Lights = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Sprite)
+      self:_mixin(Lights)
+      self.sprite = love.graphics.newImage("assets/gfx/spike.png")
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Light",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Light = _class_0
+end
 love.mousereleased = function(x, y, button)
   if button == "l" then
     d:_start()
@@ -3370,7 +3437,7 @@ love.mousereleased = function(x, y, button)
       x,
       y
     })
-    local o = SteelBall()
+    local o = Steelball()
     return actor.send(o.id, 'set_pos', {
       x,
       y

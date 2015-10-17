@@ -1341,6 +1341,23 @@ class Spike extends Object
         @dmg_pts = 10000
 
 
+class Lights
+    init: (msg, sender) =>
+        @light = @room.lightWorld\newLight(@world_obj.x, @world_obj.y, 255, 255, 255)--, 300)
+        @light\setRange(@world_obj.properties.range or 300)
+        if @world_obj.properties.colour
+            r, g, b = string.match(@world_obj.properties.colour, "(..)(..)(..)")
+            @light\setColor(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
+
+
+class Light extends Object
+    mixins: =>
+        @\_mixin RoomOccupier
+        @\_mixin Sprite
+        @\_mixin Lights
+        @sprite = love.graphics.newImage "assets/gfx/spike.png"
+
+
 love.mousereleased = (x, y, button) ->
     if button == "l"
         d\_start!
