@@ -1112,9 +1112,9 @@ class Eye extends Object
             y + @y - @sprite2\getHeight()/2
 
 
-class SteelBall extends Object
+class Steelball extends Object
     mixins: =>
-        @\add_handler "init", SteelBall.init
+        @\add_handler "init", Steelball.init
 
         @\_mixin RoomOccupier
         @\_mixin Damageable
@@ -1136,7 +1136,7 @@ class SteelBall extends Object
 
         @faction = 'bad'
 
-        @\add_handler "contact", SteelBall.contact
+        @\add_handler "contact", Steelball.contact
 
     -- Add random bounce so we don't lose velocity
     contact: (other_id, sender) =>
@@ -1346,7 +1346,7 @@ love.mousereleased = (x, y, button) ->
         d\_start!
         actor.send d.id, 'click', {x, y}
 
-        o = SteelBall()
+        o = Steelball()
         actor.send o.id, 'set_pos', {x, y}
 
 
