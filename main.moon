@@ -114,7 +114,7 @@ class SmokeWhenDead
     die: (msg, sender) =>
         magnitude = 300
         for i = 1, 10
-            o = Smoke()
+            o = ExplosionDebris()
             actor.send o.id, 'set_pos', {@x, @y}
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
@@ -900,8 +900,16 @@ class Smoke extends Object
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin ShortLived
-        --@\_mixin BBoxedQuad
-        --@\_mixin QuadSprite
+
+
+class ExplosionDebris extends Object
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/explode.png"
+        @\_mixin Sprite
+        @\_mixin Smokey
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin ShortLived
 
 
 class Ladder extends Object

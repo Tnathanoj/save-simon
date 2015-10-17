@@ -161,7 +161,7 @@ do
     die = function(self, msg, sender)
       local magnitude = 300
       for i = 1, 10 do
-        local o = Smoke()
+        local o = ExplosionDebris()
         actor.send(o.id, 'set_pos', {
           self.x,
           self.y
@@ -2069,6 +2069,48 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Smoke = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/explode.png")
+      self:_mixin(Sprite)
+      self:_mixin(Smokey)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      return self:_mixin(ShortLived)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "ExplosionDebris",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  ExplosionDebris = _class_0
 end
 do
   local _parent_0 = Object
