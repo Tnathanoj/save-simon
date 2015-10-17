@@ -20,6 +20,8 @@ newbbox = (o) ->
     o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
     o.shape = love.physics.newCircleShape(o.bbox_radius)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
+    o.fixture\setRestitution(o.restitution)
+    --o.fixture\setDensity(1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
     o.body\setMass(o.mass)
@@ -656,6 +658,7 @@ class BBoxed
     new: =>
         @mass = 5
         @friction = 6
+        @restitution = 0.2
         @bbox_radius = 10
         @speed_max = 300
 
@@ -1109,6 +1112,41 @@ class Eye extends Object
             y + @y - @sprite2\getHeight()/2
 
 
+class SteelBall extends Object
+    mixins: =>
+        @\add_handler "init", SteelBall.init
+
+        @\_mixin RoomOccupier
+        @\_mixin Damageable
+        @\_mixin Controlled
+        --@\_mixin PlayerFollower
+        --@\_mixin FacesDirectionByVelocity
+        --@\_mixin Toucher
+        --@\_mixin Attacker
+        --@\_mixin Walker
+        --@\_mixin PlayerBBoxed
+        @\_mixin Sprite
+        @\_mixin BBoxed
+        @\_mixin Contactable
+
+        --@\_mixin DamageOnContact
+        @dmg_pts = 20
+
+        @sprite = love.graphics.newImage "assets/gfx/steel_ball.png"
+
+        @faction = 'bad'
+
+        @\add_handler "contact", SteelBall.contact
+
+    -- Add random bounce so we don't lose velocity
+    contact: (other_id, sender) =>
+        @body\applyLinearImpulse(0, -100 - math.random() * 500)
+
+    init: (msg, sender) =>
+        @bbox_radius = 16
+        @restitution = 1
+
+
 class Monster extends Object
     mixins: =>
         @\_mixin RoomOccupier
@@ -1308,7 +1346,7 @@ love.mousereleased = (x, y, button) ->
         d\_start!
         actor.send d.id, 'click', {x, y}
 
-        o = CinderBlock()
+        o = SteelBall()
         actor.send o.id, 'set_pos', {x, y}
 
 

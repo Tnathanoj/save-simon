@@ -15,6 +15,7 @@ newbbox = function(o)
   o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
   o.shape = love.physics.newCircleShape(o.bbox_radius)
   o.fixture = love.physics.newFixture(o.body, o.shape, 1)
+  o.fixture:setRestitution(o.restitution)
   o.fixture:setUserData(o)
   o.fixture:setFriction(o.friction)
   return o.body:setMass(o.mass)
@@ -1625,6 +1626,7 @@ do
     __init = function(self)
       self.mass = 5
       self.friction = 6
+      self.restitution = 0.2
       self.bbox_radius = 10
       self.speed_max = 300
     end,
@@ -2684,6 +2686,60 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:add_handler("init", SteelBall.init)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Damageable)
+      self:_mixin(Controlled)
+      self:_mixin(Sprite)
+      self:_mixin(BBoxed)
+      self:_mixin(Contactable)
+      self.dmg_pts = 20
+      self.sprite = love.graphics.newImage("assets/gfx/steel_ball.png")
+      self.faction = 'bad'
+      return self:add_handler("contact", SteelBall.contact)
+    end,
+    contact = function(self, other_id, sender)
+      return self.body:applyLinearImpulse(0, -100 - math.random() * 500)
+    end,
+    init = function(self, msg, sender)
+      self.bbox_radius = 16
+      self.restitution = 1
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "SteelBall",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  SteelBall = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
       self:_mixin(RoomOccupier)
       self:_mixin(Animated)
       self:_mixin(Damageable)
@@ -3314,7 +3370,7 @@ love.mousereleased = function(x, y, button)
       x,
       y
     })
-    local o = CinderBlock()
+    local o = SteelBall()
     return actor.send(o.id, 'set_pos', {
       x,
       y
