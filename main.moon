@@ -10,11 +10,21 @@ export ^
 
 game_over_font_h = 50
 
+-- A level is made up of many rooms
+export levels = {}
+
 -- Load animation
 anim = (path, x, y, speed, a, b) ->
     newAnimation love.graphics.newImage(path), x, y, speed, a, b
 
 current_room = {}
+
+
+warp_to_level = (obj, level) ->
+    obj.last_level_warp_time = 1 + love.timer.getTime()
+    current_room = levels[level].rooms["start"]
+    actor.send obj.id, 'set_room', levels[level].rooms["start"]
+
 
 newbbox = (o) ->
     o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
@@ -179,6 +189,33 @@ class NoDamageIfStill
             @no_dmg_in = true
 
 
+class Levelwarper
+    new: =>
+        @last_level_warp_time = 0
+
+    step: (dt, sender) =>
+        if @last_level_warp_time < love.timer.getTime()
+
+            if love.keyboard.isDown("1")
+                warp_to_level(@, 1)
+            elseif love.keyboard.isDown("2")
+                warp_to_level(@, 2)
+            elseif love.keyboard.isDown("3")
+                warp_to_level(@, 3)
+            elseif love.keyboard.isDown("4")
+                warp_to_level(@, 4)
+            elseif love.keyboard.isDown("5")
+                warp_to_level(@, 5)
+            elseif love.keyboard.isDown("6")
+                warp_to_level(@, 6)
+            elseif love.keyboard.isDown("7")
+                warp_to_level(@, 7)
+            elseif love.keyboard.isDown("8")
+                warp_to_level(@, 8)
+            elseif love.keyboard.isDown("9")
+                warp_to_level(@, 9)
+
+
 class RoomOccupier
     new: =>
         @x = 0
@@ -282,10 +319,10 @@ class MouseFollower
 class PlayerFollower
     @needs = {'Stepper'}
     step: (dt, sender) =>
-        @target = d
-        if @x < d.x
+        @target = player
+        if @x < player.x
             actor.send @id, 'cmd_right'
-        elseif @x > d.x
+        elseif @x > player.x
             actor.send @id, 'cmd_left'
 
 
@@ -788,6 +825,7 @@ class Player extends Object
         --@\_mixin Smokey
         @\_mixin Controlled
         @\_mixin Thrower
+        @\_mixin Levelwarper
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
         --@\_mixin Falls
@@ -1360,17 +1398,15 @@ class Light extends Object
 
 love.mousereleased = (x, y, button) ->
     if button == "l"
-        d\_start!
-        actor.send d.id, 'click', {x, y}
+        player\_start!
+        actor.send player.id, 'click', {x, y}
 
         o = Steelball()
         actor.send o.id, 'set_pos', {x, y}
 
 
--- A level is made up of many rooms
-levels = {}
 
-export d = {}
+export player = {}
 export windowWidth = 640
 export windowHeight = 480
 screen_pan_time = 1
@@ -1408,15 +1444,15 @@ love.load = ->
     --current_room.map.layers.Objects.objects[objects.player] =
     -- {x=objects.player.x, y=objects.player.y, o=objects.player, type="player"}
  
-    d = Player()
+    player = Player()
     g = Poisonflask()
     c = Antidoteflask()
     --m = Monster()
     t = Turkey()
     --i = Imp()
 
-    actor.send d.id, 'set_pos', {400, 100}
-    actor.send d.id, 'cmd_right'
+    actor.send player.id, 'set_pos', {400, 100}
+    actor.send player.id, 'cmd_right'
     actor.send g.id, 'set_pos', {200, 300}
     actor.send c.id, 'set_pos', {500, 300}
     --actor.send m.id, 'set_pos', {500, 200}
@@ -1431,7 +1467,7 @@ camera_change_time = 0
 update_camera = (dt) ->
 
     cam_org = vector.new(camera._x, camera._y)
-    ent_org = vector.new(d.x - windowWidth / 2, d.y - windowHeight / 1.5)
+    ent_org = vector.new(player.x - windowWidth / 2, player.y - windowHeight / 1.5)
 
     sub = ent_org - cam_org
     sub\normalize_inplace()
@@ -1447,21 +1483,22 @@ update_camera = (dt) ->
 
 love.update = (dt) ->
     if love.keyboard.isDown("right") or love.keyboard.isDown("f")
-        actor.send d.id, 'cmd_right'
+        actor.send player.id, 'cmd_right'
     if love.keyboard.isDown("left") or love.keyboard.isDown("e")
-        actor.send d.id, 'cmd_left'
+        actor.send player.id, 'cmd_left'
     if love.keyboard.isDown("up") or love.keyboard.isDown("w")
-        actor.send d.id, 'cmd_up'
+        actor.send player.id, 'cmd_up'
     if love.keyboard.isDown("down") or love.keyboard.isDown("s")
-        actor.send d.id, 'cmd_down'
+        actor.send player.id, 'cmd_down'
     if love.keyboard.isDown("z") or love.keyboard.isDown("j")
-        actor.send d.id, 'cmd_attack'
+        actor.send player.id, 'cmd_attack'
     if love.keyboard.isDown("x") or love.keyboard.isDown("l")
-        actor.send d.id, 'cmd_secondary'
+        actor.send player.id, 'cmd_secondary'
 
     for _, o in pairs steppers
-        if o.room == current_room
+        if o.room == current_room or o == player
             actor.send o.id, 'step', dt
+
     actor.run()
 
     current_room.map\update(dt)
@@ -1500,7 +1537,7 @@ love.draw = ->
 
     love.graphics.pop()
 
-    draw_hp_bar(10, 10, 2, 100, 10, d.hp / 100)
+    draw_hp_bar(10, 10, 2, 100, 10, player.hp / 100)
 
-    if d.hp <= 0
+    if player.hp <= 0
         love.graphics.print("GAME\nOVER", windowWidth / 2 - 4 * game_over_font_h / 2, windowHeight / 3)

@@ -5,11 +5,18 @@ require("world")
 require('camera')
 local vector = require('vector')
 local game_over_font_h = 50
+levels = { }
 local anim
 anim = function(path, x, y, speed, a, b)
   return newAnimation(love.graphics.newImage(path), x, y, speed, a, b)
 end
 local current_room = { }
+local warp_to_level
+warp_to_level = function(obj, level)
+  obj.last_level_warp_time = 1 + love.timer.getTime()
+  current_room = levels[level].rooms["start"]
+  return actor.send(obj.id, 'set_room', levels[level].rooms["start"])
+end
 local newbbox
 newbbox = function(o)
   o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
@@ -333,6 +340,50 @@ do
 end
 do
   local _base_0 = {
+    step = function(self, dt, sender)
+      if self.last_level_warp_time < love.timer.getTime() then
+        if love.keyboard.isDown("1") then
+          return warp_to_level(self, 1)
+        elseif love.keyboard.isDown("2") then
+          return warp_to_level(self, 2)
+        elseif love.keyboard.isDown("3") then
+          return warp_to_level(self, 3)
+        elseif love.keyboard.isDown("4") then
+          return warp_to_level(self, 4)
+        elseif love.keyboard.isDown("5") then
+          return warp_to_level(self, 5)
+        elseif love.keyboard.isDown("6") then
+          return warp_to_level(self, 6)
+        elseif love.keyboard.isDown("7") then
+          return warp_to_level(self, 7)
+        elseif love.keyboard.isDown("8") then
+          return warp_to_level(self, 8)
+        elseif love.keyboard.isDown("9") then
+          return warp_to_level(self, 9)
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.last_level_warp_time = 0
+    end,
+    __base = _base_0,
+    __name = "Levelwarper"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Levelwarper = _class_0
+end
+do
+  local _base_0 = {
     set_pos = function(self, msg, sender)
       self.x = msg[1]
       self.y = msg[2]
@@ -623,10 +674,10 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
-      self.target = d
-      if self.x < d.x then
+      self.target = player
+      if self.x < player.x then
         return actor.send(self.id, 'cmd_right')
-      elseif self.x > d.x then
+      elseif self.x > player.x then
         return actor.send(self.id, 'cmd_left')
       end
     end
@@ -1797,6 +1848,7 @@ do
       self:_mixin(RunSmokey)
       self:_mixin(Controlled)
       self:_mixin(Thrower)
+      self:_mixin(Levelwarper)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
       self.anims["standing"] = anim("assets/gfx/manstanding.png", 80, 103, .15, 1, 1)
@@ -3432,8 +3484,8 @@ do
 end
 love.mousereleased = function(x, y, button)
   if button == "l" then
-    d:_start()
-    actor.send(d.id, 'click', {
+    player:_start()
+    actor.send(player.id, 'click', {
       x,
       y
     })
@@ -3444,8 +3496,7 @@ love.mousereleased = function(x, y, button)
     })
   end
 end
-local levels = { }
-d = { }
+player = { }
 windowWidth = 640
 windowHeight = 480
 local screen_pan_time = 1
@@ -3477,15 +3528,15 @@ love.load = function()
   love.physics.setMeter(32)
   levels = load_levels(on_level_object_creation)
   current_room = levels[1].rooms["start"]
-  d = Player()
+  player = Player()
   local g = Poisonflask()
   local c = Antidoteflask()
   local t = Turkey()
-  actor.send(d.id, 'set_pos', {
+  actor.send(player.id, 'set_pos', {
     400,
     100
   })
-  actor.send(d.id, 'cmd_right')
+  actor.send(player.id, 'cmd_right')
   actor.send(g.id, 'set_pos', {
     200,
     300
@@ -3503,7 +3554,7 @@ camera_change_time = 0
 local update_camera
 update_camera = function(dt)
   local cam_org = vector.new(camera._x, camera._y)
-  local ent_org = vector.new(d.x - windowWidth / 2, d.y - windowHeight / 1.5)
+  local ent_org = vector.new(player.x - windowWidth / 2, player.y - windowHeight / 1.5)
   local sub = ent_org - cam_org
   sub:normalize_inplace()
   local dist = ent_org:dist(cam_org)
@@ -3512,25 +3563,25 @@ update_camera = function(dt)
 end
 love.update = function(dt)
   if love.keyboard.isDown("right") or love.keyboard.isDown("f") then
-    actor.send(d.id, 'cmd_right')
+    actor.send(player.id, 'cmd_right')
   end
   if love.keyboard.isDown("left") or love.keyboard.isDown("e") then
-    actor.send(d.id, 'cmd_left')
+    actor.send(player.id, 'cmd_left')
   end
   if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-    actor.send(d.id, 'cmd_up')
+    actor.send(player.id, 'cmd_up')
   end
   if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-    actor.send(d.id, 'cmd_down')
+    actor.send(player.id, 'cmd_down')
   end
   if love.keyboard.isDown("z") or love.keyboard.isDown("j") then
-    actor.send(d.id, 'cmd_attack')
+    actor.send(player.id, 'cmd_attack')
   end
   if love.keyboard.isDown("x") or love.keyboard.isDown("l") then
-    actor.send(d.id, 'cmd_secondary')
+    actor.send(player.id, 'cmd_secondary')
   end
   for _, o in pairs(steppers) do
-    if o.room == current_room then
+    if o.room == current_room or o == player then
       actor.send(o.id, 'step', dt)
     end
   end
@@ -3567,8 +3618,8 @@ love.draw = function()
   end
   actor.run()
   love.graphics.pop()
-  draw_hp_bar(10, 10, 2, 100, 10, d.hp / 100)
-  if d.hp <= 0 then
+  draw_hp_bar(10, 10, 2, 100, 10, player.hp / 100)
+  if player.hp <= 0 then
     return love.graphics.print("GAME\nOVER", windowWidth / 2 - 4 * game_over_font_h / 2, windowHeight / 3)
   end
 end

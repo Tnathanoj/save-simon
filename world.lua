@@ -305,7 +305,6 @@ load_levels = function(object_create)
   connect_doors(levels)
   for _, level in pairs(levels) do
     for _, room in pairs(level.rooms) do
-      print(room.path)
       for _, obj in ipairs(room.map.layers.Objects.objects) do
         if (obj.type == "door" or obj.type == "upstairs" or obj.type == "downstairs") and obj.target_door ~= nil then
           object_create(obj, room)
