@@ -8,6 +8,11 @@ windowWidth = 640
 windowHeight = 480
 
 
+first_from_iter = (iter) ->
+    for item in iter
+        return item
+
+
 getPolygonVertices = (object, tile, precalc) ->
     ox, oy = 0, 0
 
@@ -22,7 +27,7 @@ getPolygonVertices = (object, tile, precalc) ->
 
 
 -- http://coronalabs.com/blog/2014/09/30/tutorial-how-to-shuffle-table-items/
-shuffleTable = (t) ->
+shuffle_table = (t) ->
     rand = math.random 
     iterations = #t
     j
@@ -157,9 +162,11 @@ new_room = (map_file, object_create) ->
     spriteLayer = room.map.layers["Objects"]
 
     for k, obj in ipairs(room.map.layers.Objects.objects)
+        if obj.type == "door"
+            continue
         object_create(obj, room)
 
-    shuffleTable(room.map.layers.Objects.objects)
+    shuffle_table(room.map.layers.Objects.objects)
 
 --    spriteLayer.update = (self, dt) ->
 --        for _, obj in pairs(self.objects) do
@@ -181,60 +188,81 @@ room_unused_doors = (room) ->
     return coroutine.wrap(_room_unused_doors)
 
 
-connect_level_doors = (level) ->
-    -- get the doors from start first
-    start_doors = {}
-    for door in room_unused_doors(level.rooms["start"])
-        table.insert(start_doors, door)
+connect_2_rooms = (room1, room2) ->
+    d1 = first_from_iter(room_unused_doors(room1))
+    if d1 == nil
+        print "Does not have doors left", room1.path
 
-    -- get the rest of the doors
+    d2 = first_from_iter(room_unused_doors(room2))
+    if d2 == nil
+        print "Does not have doors left", room2.path
+
+    d1.target_door = d2
+    d2.target_door = d1
+
+
+connect_level_doors = (level) ->
+
+    -- Get everything except for start and end
+    rooms = {}
+    for name, room in pairs(level.rooms)
+        if name == 'start' or name == 'end'
+            continue 
+        table.insert(rooms, room)
+
+    start = level.rooms["start"]
+    endd = level.rooms["end"]
+
+    -- Connect start to all other rooms
+    cur = start
+    for _, room in pairs(rooms)
+        connect_2_rooms(cur, room)
+        cur = room
+
+    -- Link up with end
+    connect_2_rooms(cur, endd)
+
+    last_door = first_from_iter(room_unused_doors(endd))
+
+    -- Connect the rest of the doors
+
     doors = {}
-    for _, room in pairs(level.rooms)
+    for name, room in pairs(level.rooms)
         for door in room_unused_doors(room)
             table.insert(doors, door)
 
-    -- here's your procedural generation
-    shuffleTable(doors)
+    if 1 < #doors
+        d1 = table.remove(doors, 1)
+        d2 = table.remove(doors, 1)
+        if d2.room != d1.room
+            --print("connected " .. d1.room.path .. " to " .. d2.room.path)
+            d1.target_door = d2
+            d2.target_door = d1
+        else
+            table.insert(doors, d2)
 
-    -- insert start doors at front
-    for _, door in pairs(start_doors)
-        table.insert(doors, 1, door)
-
-    -- TODO: this algorithm sucks, needs some love
-    door = table.remove(doors, 1)
-    while 0 < #doors
-        for i, door2 in ipairs(doors)
-            if door2.room != door.room
-                print("connected " .. door.room.path .. " to " .. door2.room.path)
-                table.remove(doors, i)
-                door2.target_door = door
-                door.target_door = door2
-                break
-        door = table.remove(doors, 1)
-
-    return door
+    return last_door
 
 
 connect_doors = (levels) ->
+    i = 1
     last_stair = nil
     for _, level in pairs(levels)
-    --for i=1, 9, 1 do
-        --local level = levels[i]
-        --print(i)
-        --print(level)
         -- Hook up stair case from previous level 
         if last_stair
-           for door in room_unused_doors(level.rooms["start"])
-               door.type = 'upstairs'
-               door.target_door = last_stair
-               door.img = love.graphics.newImage("assets/gfx/upstairs.png")
+           door = first_from_iter(room_unused_doors(level.rooms["start"]))
+           door.type = 'upstairs'
+           door.target_door = last_stair
 
-               last_stair.type = 'downstairs'
-               last_stair.target_door = door
-               last_stair.img = love.graphics.newImage("assets/gfx/downstairs.png")
-               break
+           last_stair.type = 'downstairs'
+           last_stair.target_door = door
 
-        last_stair = connect_level_doors(level)
+        -- Special case: first_from_iter level is special
+        if 1 == i
+            last_stair = first_from_iter(room_unused_doors(level.rooms["start"]))
+        else
+            last_stair = connect_level_doors(level)
+        i += 1
 
 
 load_levels = (object_create) ->
@@ -251,5 +279,12 @@ load_levels = (object_create) ->
             levels[room_level].rooms[room_name] = new_room(map_file_name, object_create)
 
     connect_doors(levels)
+
+    -- Inject doors into game
+    for _, level in pairs(levels)
+        for _, room in pairs(level.rooms)
+            for _, obj in ipairs(room.map.layers.Objects.objects)
+                if (obj.type == "door" or obj.type == "upstairs" or obj.type == "downstairs") and obj.target_door != nil
+                    object_create(obj, room)
 
     return levels

@@ -2,6 +2,12 @@ local LightWorld = require('light')
 local sti = require('sti')
 local windowWidth = 640
 local windowHeight = 480
+local first_from_iter
+first_from_iter = function(iter)
+  for item in iter do
+    return item
+  end
+end
 local getPolygonVertices
 getPolygonVertices = function(object, tile, precalc)
   local ox, oy = 0, 0
@@ -14,8 +20,8 @@ getPolygonVertices = function(object, tile, precalc)
   end
   return vertices
 end
-local shuffleTable
-shuffleTable = function(t)
+local shuffle_table
+shuffle_table = function(t)
   local rand = math.random
   local iterations = #t
   local _ = j
@@ -170,7 +176,21 @@ new_room = function(map_file, object_create)
     load_normal_map(room)
   end
   local spriteLayer = room.map.layers["Objects"]
-  shuffleTable(room.map.layers.Objects.objects)
+  for k, obj in ipairs(room.map.layers.Objects.objects) do
+    local _continue_0 = false
+    repeat
+      if obj.type == "door" then
+        _continue_0 = true
+        break
+      end
+      object_create(obj, room)
+      _continue_0 = true
+    until true
+    if not _continue_0 then
+      break
+    end
+  end
+  shuffle_table(room.map.layers.Objects.objects)
   spriteLayer.draw = function(self, dt) end
   return room
 end
@@ -188,53 +208,81 @@ room_unused_doors = function(room)
   end
   return coroutine.wrap(_room_unused_doors)
 end
+local connect_2_rooms
+connect_2_rooms = function(room1, room2)
+  local d1 = first_from_iter(room_unused_doors(room1))
+  if d1 == nil then
+    print("Does not have doors left", room1.path)
+  end
+  local d2 = first_from_iter(room_unused_doors(room2))
+  if d2 == nil then
+    print("Does not have doors left", room2.path)
+  end
+  d1.target_door = d2
+  d2.target_door = d1
+end
 local connect_level_doors
 connect_level_doors = function(level)
-  local start_doors = { }
-  for door in room_unused_doors(level.rooms["start"]) do
-    table.insert(start_doors, door)
+  local rooms = { }
+  for name, room in pairs(level.rooms) do
+    local _continue_0 = false
+    repeat
+      if name == 'start' or name == 'end' then
+        _continue_0 = true
+        break
+      end
+      table.insert(rooms, room)
+      _continue_0 = true
+    until true
+    if not _continue_0 then
+      break
+    end
   end
+  local start = level.rooms["start"]
+  local endd = level.rooms["end"]
+  local cur = start
+  for _, room in pairs(rooms) do
+    connect_2_rooms(cur, room)
+    cur = room
+  end
+  connect_2_rooms(cur, endd)
+  local last_door = first_from_iter(room_unused_doors(endd))
   local doors = { }
-  for _, room in pairs(level.rooms) do
+  for name, room in pairs(level.rooms) do
     for door in room_unused_doors(room) do
       table.insert(doors, door)
     end
   end
-  shuffleTable(doors)
-  for _, door in pairs(start_doors) do
-    table.insert(doors, 1, door)
-  end
-  local door = table.remove(doors, 1)
-  while 0 < #doors do
-    for i, door2 in ipairs(doors) do
-      if door2.room ~= door.room then
-        print("connected " .. door.room.path .. " to " .. door2.room.path)
-        table.remove(doors, i)
-        door2.target_door = door
-        door.target_door = door2
-        break
-      end
+  if 1 < #doors then
+    local d1 = table.remove(doors, 1)
+    local d2 = table.remove(doors, 1)
+    if d2.room ~= d1.room then
+      d1.target_door = d2
+      d2.target_door = d1
+    else
+      table.insert(doors, d2)
     end
-    door = table.remove(doors, 1)
   end
-  return door
+  return last_door
 end
 local connect_doors
 connect_doors = function(levels)
+  local i = 1
   local last_stair = nil
   for _, level in pairs(levels) do
     if last_stair then
-      for door in room_unused_doors(level.rooms["start"]) do
-        door.type = 'upstairs'
-        door.target_door = last_stair
-        door.img = love.graphics.newImage("assets/gfx/upstairs.png")
-        last_stair.type = 'downstairs'
-        last_stair.target_door = door
-        last_stair.img = love.graphics.newImage("assets/gfx/downstairs.png")
-        break
-      end
+      local door = first_from_iter(room_unused_doors(level.rooms["start"]))
+      door.type = 'upstairs'
+      door.target_door = last_stair
+      last_stair.type = 'downstairs'
+      last_stair.target_door = door
     end
-    last_stair = connect_level_doors(level)
+    if 1 == i then
+      last_stair = first_from_iter(room_unused_doors(level.rooms["start"]))
+    else
+      last_stair = connect_level_doors(level)
+    end
+    i = i + 1
   end
 end
 load_levels = function(object_create)
@@ -254,13 +302,16 @@ load_levels = function(object_create)
       levels[room_level].rooms[room_name] = new_room(map_file_name, object_create)
     end
   end
-  for k, level in pairs(levels) do
-    for j, room in pairs(level.rooms) do
-      for k, obj in ipairs(room.map.layers.Objects.objects) do
-        object_create(obj, room)
+  connect_doors(levels)
+  for _, level in pairs(levels) do
+    for _, room in pairs(level.rooms) do
+      print(room.path)
+      for _, obj in ipairs(room.map.layers.Objects.objects) do
+        if (obj.type == "door" or obj.type == "upstairs" or obj.type == "downstairs") and obj.target_door ~= nil then
+          object_create(obj, room)
+        end
       end
     end
   end
-  connect_doors(levels)
   return levels
 end
