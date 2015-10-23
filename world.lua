@@ -164,10 +164,12 @@ local new_room
 new_room = function(map_file, object_create)
   local room = { }
   room.path = map_file
-  room.map = sti.new(map_file)
+  room.map = sti.new(map_file .. ".lua", {
+    "box2d"
+  })
   room.world = love.physics.newWorld(0, 9.81 * 64, true)
   room.world:setCallbacks(beginContact, endContact, preSolve, postSolve)
-  room.collision = room.map:initWorldCollision(room.world)
+  room.collision = room.map:box2d_init(room.world)
   room.lightWorld = LightWorld()
   room.lightWorld:setAmbientColor(0, 0, 0)
   room.lightWorld:setRefractionStrength(16.0)
