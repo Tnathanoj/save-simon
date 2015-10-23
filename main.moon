@@ -1525,7 +1525,8 @@ love.draw = ->
         w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
         love.graphics.rectangle("fill", 0, -500, w, h)
         current_room.map.layers['Tile Layer 1']\draw()
-        --current_room.map\drawWorldCollision(current_room.collision)
+
+    -- current_room.map\box2d_draw()
 
     current_room.map.layers['Objects']\draw()
     for _, d in pairs drawables
