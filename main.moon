@@ -135,6 +135,30 @@ class SmokeWhenDead
 class Gibable
     die: (msg, sender) =>
         magnitude = 800
+
+        o = Heart()
+        actor.send o.id, 'set_pos', {@x, @y - 60}
+        actor.send o.id, 'set_vel', random_direction(magnitude)
+
+        for i = 1, 2
+            o = Giblet()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
+
+class GibableBug
+    die: (msg, sender) =>
+        magnitude = 500
+
+        for i = 1, 1
+            o = BugGiblet()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
+
+class GibableWithBones
+    die: (msg, sender) =>
+        magnitude = 800
         o = Skull()
         actor.send o.id, 'set_pos', {@x, @y - 60}
         actor.send o.id, 'set_vel', random_direction(magnitude)
@@ -158,6 +182,7 @@ class Gibable
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
+
 class DamageOnContact
     @needs = {'Contactable'}
 
@@ -165,10 +190,38 @@ class DamageOnContact
         @var_damage_on_contact_time = 0
         @last_damage_on_contact = 0
 
-    contact: (other_id, sender) =>
+    contact: (msg, sender) =>
         if @last_damage_on_contact <= love.timer.getTime()
             @last_damage_on_contact = @var_damage_on_contact_time + love.timer.getTime()
-            actor.send other_id, 'dmg', {pts: @dmg_pts}
+            actor.send msg.other_id, 'dmg', {pts: @dmg_pts}
+
+
+class DamageOnContactSideOnly
+    @needs = {'Contactable'}
+
+    new: =>
+        @var_damange_on_contact_so_time = 0
+        @last_damange_on_contact_so = 0
+
+    contact: (msg, sender) =>
+        if @faction != msg.other_faction
+            if 0.5 < math.abs(msg.normal[1]) and math.abs(msg.normal[2]) < 0.5
+                if @last_damange_on_contact_so <= love.timer.getTime()
+                    @last_damange_on_contact_so = @var_damange_on_contact_so_time + love.timer.getTime()
+                    actor.send msg.other_id, 'dmg', {pts: @dmg_pts}
+
+
+-- Can be damaged by stomping on it
+class Stompable
+    @needs = {'Contactable'}
+
+    new: =>
+        @stomped = false
+
+    contact: (msg, sender) =>
+        if not @stomped and 0.7 < msg.normal[2]
+            @stomped = true
+            actor.send @id, 'dmg', {pts: 30}
 
 
 -- Removes itself when it damages something
@@ -245,8 +298,12 @@ class RoomOccupier
 
 
 class Bleeds
+    new: (msg, sender) =>
+        if not @blood_class
+            @blood_class = Blood
+
     dmg: (msg, sender) =>
-        b = Blood()
+        b = @blood_class() 
         actor.send b.id, 'set_pos', {@x, @y}
 
 
@@ -463,7 +520,11 @@ class Animated
     draw: (msg, sender) =>
         --love.graphics.circle "fill", @x, @y, 50, 5
         --@curr_anim\draw(@x - @facing_direction*40, @y, 0, @facing_direction, 1)
-        @curr_anim\draw(@x - @facing_direction*40, @y - 83, 0, @facing_direction, 1)
+        @curr_anim\draw @x - @facing_direction * (@curr_anim\getWidth() / 2),
+          @y - @curr_anim\getHeight() * 0.8,
+          0,
+          @facing_direction,
+          1
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -515,6 +576,7 @@ class Touchable
             actor.send @id, 'touch', o.id
 
 
+-- When I contact something the "contact" message is sent to me
 class Contactable
     @needs = {'Stepper'}
     step: (dt, sender) =>
@@ -525,10 +587,21 @@ class Contactable
                 a = fixtureA\getUserData()
                 b = fixtureB\getUserData()
                 if a != nil and a.id != nil and b != nil and b.id != nil
+                    nx, ny = o\getNormal()
                     if a.id == @id
-                        actor.send @id, 'contact', b.id
+                        params = {
+                          normal: {-nx, -ny},
+                          other_id: b.id
+                          other_faction: b.faction
+                        }
+                        actor.send @id, 'contact', params
                     else 
-                        actor.send @id, 'contact', a.id
+                        params = {
+                          normal: {nx, ny},
+                          other_id: a.id
+                          other_faction: a.faction
+                        }
+                        actor.send @id, 'contact', params
 
 
 -- Gives HP
@@ -829,7 +902,7 @@ class Player extends Object
         --@\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
         @\_mixin PlayerBBoxed
-        @\_mixin Gibable
+        @\_mixin GibableWithBones
         --@\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
@@ -882,9 +955,10 @@ class Bloody
         love.graphics.draw(@blood, @x, @y - 30)
 
     new: =>
-        bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
-        @blood = love.graphics.newParticleSystem(bloodimg, 100)
-        @blood\setParticleLifetime(0.5, 1) -- Particles live at least 2s and at most 5s.
+        if not @bloodimg
+            @bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
+        @blood = love.graphics.newParticleSystem(@bloodimg, 100)
+        @blood\setParticleLifetime(1, 2) -- Particles live at least 2s and at most 5s.
         @blood\setEmissionRate(5)
         @blood\setSizeVariation(1)
         @blood\setLinearAcceleration(-100, 60, 100, 60)
@@ -992,6 +1066,12 @@ class Blood extends Object
         @\_mixin Bloody
         @\_mixin Stepper
         @\_mixin ShortLived
+
+
+class BugBlood extends Blood
+    mixins: =>
+        @bloodimg = love.graphics.newImage "assets/gfx/bug_blood.png"
+        super!
 
 
 class Piercingattack
@@ -1122,13 +1202,13 @@ class Heart extends Gib
         @var_short_lived_life_time = 1
 
 
-class Giblet extends Gib
+class BugGiblet extends Gib
     mixins: =>
-        @sprite = love.graphics.newImage "assets/gfx/giblet.png"
+        @sprite = love.graphics.newImage "assets/gfx/bug_giblet.png"
         super!
         @\_mixin ShortLived
         --@\_mixin Bloody
-        @var_short_lived_life_time = 1
+        @var_short_lived_life_time = 0.5
 
 
 class Ribcage extends Gib
@@ -1225,7 +1305,7 @@ class Steelball extends Object
         @\add_handler "contact", Steelball.contact
 
     -- Add random bounce so we don't lose velocity
-    contact: (other_id, sender) =>
+    contact: (msg, sender) =>
         @body\applyLinearImpulse(0, -100 - math.random() * 500)
 
     init: (msg, sender) =>
@@ -1245,7 +1325,7 @@ class Monster extends Object
         @\_mixin Attacker
         @\_mixin Walker
         @\_mixin PlayerBBoxed
-        @\_mixin Gibable
+        @\_mixin GibableWithBones
         @\_mixin Bleeds
         @anims['walking'] = anim "assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0
         @anims["walking"]\setMode('once')
@@ -1261,6 +1341,49 @@ class Monster extends Object
 
     step: (dt, sender) =>
         actor.send @id, 'cmd_attack'
+
+
+class Roach extends Object
+    mixins: =>
+        @blood_class = BugBlood
+
+        @\_mixin RoomOccupier
+        @\_mixin Damageable
+        @\_mixin PlayerFollower
+        --@\_mixin FacesDirectionByVelocity
+        -- @\_mixin Toucher
+        -- @\_mixin Animated
+        -- @\_mixin Walker
+        --@\_mixin Attacker
+        --@\_mixin PlayerBBoxed
+        @\_mixin BBoxed
+        --@\_mixin GibableBug
+        @\_mixin Bleeds
+        @\_mixin Controlled
+        @\_mixin Sprite
+
+        @\_mixin Stompable
+        @\_mixin Contactable
+        @\_mixin DamageOnContactSideOnly
+
+        @var_damange_on_contact_so_time = 1
+
+        @dmg_pts = 5
+        @hp = 20
+
+        @sprite = love.graphics.newImage "assets/gfx/roach.png"
+
+        -- @anims['walking'] = anim "assets/gfx/roach.png", 32, 32, .175, 1, 0
+        -- @anims["walking"]\setMode('once')
+        -- @anims["standing"] = anim "assets/gfx/roach.png", 32, 32, .15, 1, 1
+        -- @anims["standing"]\setMode('once')
+        -- @anims["attacking"] = anim "assets/gfx/roach.png", 32, 32, .15, 1, 1
+        -- @anims["attacking"]\setMode('once')
+        -- actor.send @id, 'set_anim', 'walking'
+
+        @speed_max = 100
+        @attack_cooldown_time = 1.5
+        @faction = 'bad'
 
 
 class Imp extends Object
@@ -1449,7 +1572,7 @@ love.mousereleased = (x, y, button) ->
         player\_start!
         actor.send player.id, 'click', {x, y}
 
-        o = Steelball()
+        o = Roach()
         actor.send o.id, 'set_pos', {x, y}
 
 

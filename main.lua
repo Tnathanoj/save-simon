@@ -198,6 +198,72 @@ do
   local _base_0 = {
     die = function(self, msg, sender)
       local magnitude = 800
+      local o = Heart()
+      actor.send(o.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(o.id, 'set_vel', random_direction(magnitude))
+      for i = 1, 2 do
+        o = Giblet()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(o.id, 'set_vel', random_direction(magnitude))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Gibable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Gibable = _class_0
+end
+do
+  local _base_0 = {
+    die = function(self, msg, sender)
+      local magnitude = 500
+      for i = 1, 1 do
+        local o = BugGiblet()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(o.id, 'set_vel', random_direction(magnitude))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "GibableBug"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  GibableBug = _class_0
+end
+do
+  local _base_0 = {
+    die = function(self, msg, sender)
+      local magnitude = 800
       local o = Skull()
       actor.send(o.id, 'set_pos', {
         self.x,
@@ -238,7 +304,7 @@ do
   local _class_0 = setmetatable({
     __init = function() end,
     __base = _base_0,
-    __name = "Gibable"
+    __name = "GibableWithBones"
   }, {
     __index = _base_0,
     __call = function(cls, ...)
@@ -248,14 +314,14 @@ do
     end
   })
   _base_0.__class = _class_0
-  Gibable = _class_0
+  GibableWithBones = _class_0
 end
 do
   local _base_0 = {
-    contact = function(self, other_id, sender)
+    contact = function(self, msg, sender)
       if self.last_damage_on_contact <= love.timer.getTime() then
         self.last_damage_on_contact = self.var_damage_on_contact_time + love.timer.getTime()
-        return actor.send(other_id, 'dmg', {
+        return actor.send(msg.other_id, 'dmg', {
           pts = self.dmg_pts
         })
       end
@@ -283,6 +349,77 @@ do
     'Contactable'
   }
   DamageOnContact = _class_0
+end
+do
+  local _base_0 = {
+    contact = function(self, msg, sender)
+      if self.faction ~= msg.other_faction then
+        if 0.5 < math.abs(msg.normal[1]) and math.abs(msg.normal[2]) < 0.5 then
+          if self.last_damange_on_contact_so <= love.timer.getTime() then
+            self.last_damange_on_contact_so = self.var_damange_on_contact_so_time + love.timer.getTime()
+            return actor.send(msg.other_id, 'dmg', {
+              pts = self.dmg_pts
+            })
+          end
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.var_damange_on_contact_so_time = 0
+      self.last_damange_on_contact_so = 0
+    end,
+    __base = _base_0,
+    __name = "DamageOnContactSideOnly"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Contactable'
+  }
+  DamageOnContactSideOnly = _class_0
+end
+do
+  local _base_0 = {
+    contact = function(self, msg, sender)
+      if not self.stomped and 0.7 < msg.normal[2] then
+        self.stomped = true
+        return actor.send(self.id, 'dmg', {
+          pts = 30
+        })
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.stomped = false
+    end,
+    __base = _base_0,
+    __name = "Stompable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Contactable'
+  }
+  Stompable = _class_0
 end
 do
   local _base_0 = {
@@ -428,7 +565,7 @@ end
 do
   local _base_0 = {
     dmg = function(self, msg, sender)
-      local b = Blood()
+      local b = self:blood_class()
       return actor.send(b.id, 'set_pos', {
         self.x,
         self.y
@@ -437,7 +574,11 @@ do
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
-    __init = function() end,
+    __init = function(self, msg, sender)
+      if not self.blood_class then
+        self.blood_class = Blood
+      end
+    end,
     __base = _base_0,
     __name = "Bleeds"
   }, {
@@ -1045,7 +1186,7 @@ do
       end
     end,
     draw = function(self, msg, sender)
-      return self.curr_anim:draw(self.x - self.facing_direction * 40, self.y - 83, 0, self.facing_direction, 1)
+      return self.curr_anim:draw(self.x - self.facing_direction * (self.curr_anim:getWidth() / 2), self.y - self.curr_anim:getHeight() * 0.8, 0, self.facing_direction, 1)
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)
@@ -1207,10 +1348,27 @@ do
           local a = fixtureA:getUserData()
           local b = fixtureB:getUserData()
           if a ~= nil and a.id ~= nil and b ~= nil and b.id ~= nil then
+            local nx, ny = o:getNormal()
             if a.id == self.id then
-              actor.send(self.id, 'contact', b.id)
+              local params = {
+                normal = {
+                  -nx,
+                  -ny
+                },
+                other_id = b.id,
+                other_faction = b.faction
+              }
+              actor.send(self.id, 'contact', params)
             else
-              actor.send(self.id, 'contact', a.id)
+              local params = {
+                normal = {
+                  nx,
+                  ny
+                },
+                other_id = a.id,
+                other_faction = a.faction
+              }
+              actor.send(self.id, 'contact', params)
             end
           end
         end
@@ -1869,7 +2027,7 @@ do
       self:_mixin(Attacker)
       self:_mixin(Toucher)
       self:_mixin(PlayerBBoxed)
-      self:_mixin(Gibable)
+      self:_mixin(GibableWithBones)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
       self:_mixin(Activator)
@@ -1963,9 +2121,11 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
-      local bloodimg = love.graphics.newImage("assets/gfx/blood_puffy.png")
-      self.blood = love.graphics.newParticleSystem(bloodimg, 100)
-      self.blood:setParticleLifetime(0.5, 1)
+      if not self.bloodimg then
+        self.bloodimg = love.graphics.newImage("assets/gfx/blood_puffy.png")
+      end
+      self.blood = love.graphics.newParticleSystem(self.bloodimg, 100)
+      self.blood:setParticleLifetime(1, 2)
       self.blood:setEmissionRate(5)
       self.blood:setSizeVariation(1)
       self.blood:setLinearAcceleration(-100, 60, 100, 60)
@@ -2273,6 +2433,44 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Blood = _class_0
+end
+do
+  local _parent_0 = Blood
+  local _base_0 = {
+    mixins = function(self)
+      self.bloodimg = love.graphics.newImage("assets/gfx/bug_blood.png")
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "BugBlood",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  BugBlood = _class_0
 end
 do
   local _base_0 = {
@@ -2656,10 +2854,10 @@ do
   local _parent_0 = Gib
   local _base_0 = {
     mixins = function(self)
-      self.sprite = love.graphics.newImage("assets/gfx/giblet.png")
+      self.sprite = love.graphics.newImage("assets/gfx/bug_giblet.png")
       _parent_0.mixins(self)
       self:_mixin(ShortLived)
-      self.var_short_lived_life_time = 1
+      self.var_short_lived_life_time = 0.5
     end
   }
   _base_0.__index = _base_0
@@ -2669,7 +2867,7 @@ do
       return _parent_0.__init(self, ...)
     end,
     __base = _base_0,
-    __name = "Giblet",
+    __name = "BugGiblet",
     __parent = _parent_0
   }, {
     __index = function(cls, name)
@@ -2690,7 +2888,7 @@ do
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
-  Giblet = _class_0
+  BugGiblet = _class_0
 end
 do
   local _parent_0 = Gib
@@ -2877,7 +3075,7 @@ do
       self.faction = 'bad'
       return self:add_handler("contact", Steelball.contact)
     end,
-    contact = function(self, other_id, sender)
+    contact = function(self, msg, sender)
       return self.body:applyLinearImpulse(0, -100 - math.random() * 500)
     end,
     init = function(self, msg, sender)
@@ -2928,7 +3126,7 @@ do
       self:_mixin(Attacker)
       self:_mixin(Walker)
       self:_mixin(PlayerBBoxed)
-      self:_mixin(Gibable)
+      self:_mixin(GibableWithBones)
       self:_mixin(Bleeds)
       self.anims['walking'] = anim("assets/gfx/reverant_walking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
@@ -2975,6 +3173,60 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Monster = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self.blood_class = BugBlood
+      self:_mixin(RoomOccupier)
+      self:_mixin(Damageable)
+      self:_mixin(PlayerFollower)
+      self:_mixin(BBoxed)
+      self:_mixin(Bleeds)
+      self:_mixin(Controlled)
+      self:_mixin(Sprite)
+      self:_mixin(Stompable)
+      self:_mixin(Contactable)
+      self:_mixin(DamageOnContactSideOnly)
+      self.var_damange_on_contact_so_time = 1
+      self.dmg_pts = 5
+      self.hp = 20
+      self.sprite = love.graphics.newImage("assets/gfx/roach.png")
+      self.speed_max = 100
+      self.attack_cooldown_time = 1.5
+      self.faction = 'bad'
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Roach",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Roach = _class_0
 end
 do
   local _parent_0 = Object
@@ -3616,7 +3868,7 @@ love.mousereleased = function(x, y, button)
       x,
       y
     })
-    local o = Steelball()
+    local o = Roach()
     return actor.send(o.id, 'set_pos', {
       x,
       y
