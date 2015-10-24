@@ -3868,9 +3868,7 @@ do
   local _base_0 = {
     mixins = function(self)
       self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
-      self:_mixin(Lights)
-      self.sprite = love.graphics.newImage("assets/gfx/spike.png")
+      return self:_mixin(Lights)
     end
   }
   _base_0.__index = _base_0

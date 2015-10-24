@@ -1570,9 +1570,9 @@ class Lights
 class Light extends Object
     mixins: =>
         @\_mixin RoomOccupier
-        @\_mixin Sprite
         @\_mixin Lights
-        @sprite = love.graphics.newImage "assets/gfx/spike.png"
+        -- @\_mixin Sprite
+        -- @sprite = love.graphics.newImage "assets/gfx/spike.png"
 
 
 love.mousereleased = (x, y, button) ->
