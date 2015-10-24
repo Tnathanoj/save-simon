@@ -31,7 +31,7 @@ newbbox = (o) ->
     o.shape = love.physics.newCircleShape(o.bbox_radius)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
     o.fixture\setRestitution(o.restitution)
-    --o.fixture\setDensity(1)
+    --o.fixture\setDensity(0.1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
     o.body\setMass(o.mass)
@@ -41,6 +41,7 @@ newbbox_quad = (o) ->
     o.body = love.physics.newBody(o.room.world, o.x, o.y, "dynamic")
     o.shape = love.physics.newRectangleShape(0, 0, o.bboxed_quad_w, o.bboxed_quad_h)
     o.fixture = love.physics.newFixture(o.body, o.shape, 1)
+    --o.fixture\setDensity(0.1)
     o.fixture\setUserData(o)
     o.fixture\setFriction(o.friction)
     o.body\setMass(o.mass)
@@ -368,6 +369,19 @@ class Drawable
         for key, obj in pairs drawables
             if obj == @
                 table.remove drawables, key
+
+
+class AngledSprite
+    @needs = {'Drawable'}
+
+    draw: (msg, sender) =>
+            love.graphics.draw @sprite,
+                @x - @sprite\getWidth()/2,
+                @y - @sprite\getHeight()/2,
+                math.rad(@body\getAngle())
+
+    draw_done: (msg, sender) =>
+        love.graphics.setColor 255, 255, 255
 
 
 class Sprite
@@ -1052,17 +1066,51 @@ class Gib extends Object
         @\add_handler "init", Gib.init
         @\_mixin RoomOccupier
         @\_mixin Stepper
+        --@\_mixin BBoxed
+        --@\_mixin AngledSprite
         @\_mixin BBoxedQuad
         @\_mixin QuadSprite
 
     init: (msg, sender) =>
         @mass = 1
+        @restitution = 0.5 
 
 
 class Skull extends Gib
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/skull.png"
         super!
+
+
+class Watermelongib extends Gib
+    mixins: =>
+        if math.random() < 0.5
+          @sprite = love.graphics.newImage "assets/gfx/melon_gib.png"
+        else
+          @sprite = love.graphics.newImage "assets/gfx/melon_gib2.png"
+        super!
+
+
+class Watermelon extends Gib
+    mixins: =>
+        @\add_handler "init", Watermelon.init
+        @\add_handler "die", Watermelon.die
+        @\_mixin Damageable
+        @sprite = love.graphics.newImage "assets/gfx/melon.png"
+        super!
+
+    init: (msg, sender) =>
+        --@bbox_radius = 16
+        @restitution = 1
+
+    die: (msg, sender) =>
+        magnitude = 600
+
+        for i = 1, 5
+            o = Watermelongib()
+            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
 
 
 class Heart extends Gib

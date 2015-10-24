@@ -838,6 +838,35 @@ end
 do
   local _base_0 = {
     draw = function(self, msg, sender)
+      return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2, math.rad(self.body:getAngle()))
+    end,
+    draw_done = function(self, msg, sender)
+      return love.graphics.setColor(255, 255, 255)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "AngledSprite"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable'
+  }
+  AngledSprite = _class_0
+end
+do
+  local _base_0 = {
+    draw = function(self, msg, sender)
       if self.world_obj then
         return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
       else
@@ -2415,6 +2444,7 @@ do
     end,
     init = function(self, msg, sender)
       self.mass = 1
+      self.restitution = 0.5
     end
   }
   _base_0.__index = _base_0
@@ -2484,6 +2514,103 @@ do
     _parent_0.__inherited(_parent_0, _class_0)
   end
   Skull = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
+      if math.random() < 0.5 then
+        self.sprite = love.graphics.newImage("assets/gfx/melon_gib.png")
+      else
+        self.sprite = love.graphics.newImage("assets/gfx/melon_gib2.png")
+      end
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Watermelongib",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Watermelongib = _class_0
+end
+do
+  local _parent_0 = Gib
+  local _base_0 = {
+    mixins = function(self)
+      self:add_handler("init", Watermelon.init)
+      self:add_handler("die", Watermelon.die)
+      self:_mixin(Damageable)
+      self.sprite = love.graphics.newImage("assets/gfx/melon.png")
+      return _parent_0.mixins(self)
+    end,
+    init = function(self, msg, sender)
+      self.restitution = 1
+    end,
+    die = function(self, msg, sender)
+      local magnitude = 600
+      for i = 1, 5 do
+        local o = Watermelongib()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y - 60
+        })
+        actor.send(o.id, 'set_vel', random_direction(magnitude))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Watermelon",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Watermelon = _class_0
 end
 do
   local _parent_0 = Gib
