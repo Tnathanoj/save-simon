@@ -2722,6 +2722,9 @@ do
       else
         self.sprite = love.graphics.newImage("assets/gfx/melon_gib2.png")
       end
+      self:_mixin(Touchable)
+      self:_mixin(Pickupable)
+      self:_mixin(Hpbonus)
       return _parent_0.mixins(self)
     end
   }

@@ -1165,6 +1165,9 @@ class Watermelongib extends Gib
           @sprite = love.graphics.newImage "assets/gfx/melon_gib.png"
         else
           @sprite = love.graphics.newImage "assets/gfx/melon_gib2.png"
+        @\_mixin Touchable
+        @\_mixin Pickupable
+        @\_mixin Hpbonus
         super!
 
 
