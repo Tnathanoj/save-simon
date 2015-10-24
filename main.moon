@@ -312,7 +312,7 @@ class Walker
     @needs = {'Animated'}
 
     step: (dt, sender) =>
-        if 80 < math.abs(@x_vel)
+        if 70 < math.abs(@x_vel)
             actor.send @id, 'enqueue_anim', {anim:@anims['walking']}
             -- change animation speed according to ground speed
             --@curr_anim\setSpeed(math.min(math.abs(@x_vel) / 60, 1.4))
@@ -1341,7 +1341,7 @@ class Monster extends Object
         @anims["attacking"] = anim "assets/gfx/reverant_attacking.png", 80, 103, .15, 1, 1
         @anims["attacking"]\setMode('once')
         @walk_speed_max = 200
-        @speed_max = 50
+        @speed_max = 40
         actor.send @id, 'set_anim', 'walking'
         @\add_handler "step", Monster.step
         @attack_cooldown_time = 1.5

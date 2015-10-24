@@ -595,7 +595,7 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
-      if 80 < math.abs(self.x_vel) then
+      if 70 < math.abs(self.x_vel) then
         return actor.send(self.id, 'enqueue_anim', {
           anim = self.anims['walking']
         })
@@ -3176,7 +3176,7 @@ do
       self.anims["attacking"] = anim("assets/gfx/reverant_attacking.png", 80, 103, .15, 1, 1)
       self.anims["attacking"]:setMode('once')
       self.walk_speed_max = 200
-      self.speed_max = 50
+      self.speed_max = 40
       actor.send(self.id, 'set_anim', 'walking')
       self:add_handler("step", Monster.step)
       self.attack_cooldown_time = 1.5
