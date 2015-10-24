@@ -140,7 +140,7 @@ class Gibable
         actor.send o.id, 'set_pos', {@x, @y - 60}
         actor.send o.id, 'set_vel', random_direction(magnitude)
 
-        for i = 1, 2
+        for i = 1, 4
             o = Giblet()
             actor.send o.id, 'set_pos', {@x, @y - 60}
             actor.send o.id, 'set_vel', random_direction(magnitude)
@@ -520,11 +520,7 @@ class Animated
     draw: (msg, sender) =>
         --love.graphics.circle "fill", @x, @y, 50, 5
         --@curr_anim\draw(@x - @facing_direction*40, @y, 0, @facing_direction, 1)
-        @curr_anim\draw @x - @facing_direction * (@curr_anim\getWidth() / 2),
-          @y - @curr_anim\getHeight() * 0.8,
-          0,
-          @facing_direction,
-          1
+        @curr_anim\draw(@x - @facing_direction*40, @y - 83, 0, @facing_direction, 1)
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -1320,6 +1316,7 @@ class Monster extends Object
         @\_mixin Damageable
         --@\_mixin MouseFollower
         @\_mixin PlayerFollower
+        @\_mixin Controlled
         @\_mixin FacesDirectionByVelocity
         @\_mixin Toucher
         @\_mixin Attacker
@@ -1334,6 +1331,7 @@ class Monster extends Object
         @anims["attacking"] = anim "assets/gfx/reverant_attacking.png", 80, 103, .15, 1, 1
         @anims["attacking"]\setMode('once')
         @walk_speed_max = 200
+        @speed_max = 50
         actor.send @id, 'set_anim', 'walking'
         @\add_handler "step", Monster.step
         @attack_cooldown_time = 1.5

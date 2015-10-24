@@ -204,7 +204,7 @@ do
         self.y - 60
       })
       actor.send(o.id, 'set_vel', random_direction(magnitude))
-      for i = 1, 2 do
+      for i = 1, 4 do
         o = Giblet()
         actor.send(o.id, 'set_pos', {
           self.x,
@@ -1186,7 +1186,7 @@ do
       end
     end,
     draw = function(self, msg, sender)
-      return self.curr_anim:draw(self.x - self.facing_direction * (self.curr_anim:getWidth() / 2), self.y - self.curr_anim:getHeight() * 0.8, 0, self.facing_direction, 1)
+      return self.curr_anim:draw(self.x - self.facing_direction * 40, self.y - 83, 0, self.facing_direction, 1)
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)
@@ -3121,6 +3121,7 @@ do
       self:_mixin(Animated)
       self:_mixin(Damageable)
       self:_mixin(PlayerFollower)
+      self:_mixin(Controlled)
       self:_mixin(FacesDirectionByVelocity)
       self:_mixin(Toucher)
       self:_mixin(Attacker)
@@ -3135,6 +3136,7 @@ do
       self.anims["attacking"] = anim("assets/gfx/reverant_attacking.png", 80, 103, .15, 1, 1)
       self.anims["attacking"]:setMode('once')
       self.walk_speed_max = 200
+      self.speed_max = 50
       actor.send(self.id, 'set_anim', 'walking')
       self:add_handler("step", Monster.step)
       self.attack_cooldown_time = 1.5
