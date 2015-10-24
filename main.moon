@@ -159,6 +159,7 @@ class GibableBug
 class GibableWithBones
     die: (msg, sender) =>
         magnitude = 800
+
         o = Skull()
         actor.send o.id, 'set_pos', {@x, @y - 60}
         actor.send o.id, 'set_vel', random_direction(magnitude)
@@ -1192,6 +1193,15 @@ class Watermelon extends Gib
 class Heart extends Gib
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/heart.png"
+        super!
+        @\_mixin ShortLived
+        --@\_mixin Bloody
+        @var_short_lived_life_time = 1
+
+
+class Giblet extends Gib
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/giblet.png"
         super!
         @\_mixin ShortLived
         --@\_mixin Bloody
