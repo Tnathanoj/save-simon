@@ -1287,6 +1287,36 @@ class Eye extends Object
             y + @y - @sprite2\getHeight()/2
 
 
+class Secret extends Object
+    mixins: =>
+        --@\add_handler "init", Eye.init
+
+        @\_mixin Piercingvunerable
+        @\_mixin RoomOccupier
+        @\_mixin Damageable
+--        @\_mixin Sprite
+--        @\_mixin BBoxed
+        @\_mixin Gibable
+        @\_mixin Bleeds
+
+        @\add_handler "step", Secret.step
+        @\add_handler "draw", Secret.draw
+
+    init: (msg, sender) =>
+        @bbox_radius = 30
+
+   step: (dt, sender) =>
+        actor.send @id, 'cmd_attack'
+
+    draw: (msg, sender) =>
+        y = math.cos(love.timer.getTime() * 10) * 5
+        x = math.sin(love.timer.getTime() * 10) * 10
+        love.graphics.draw @sprite2,
+            x + @x - @sprite2\getWidth()/2,
+            y + @y - @sprite2\getHeight()/2
+
+
+
 class Steelball extends Object
     mixins: =>
         @\add_handler "init", Steelball.init
