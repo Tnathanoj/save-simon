@@ -153,8 +153,8 @@ new_room = (map_file, object_create) ->
     -- create light world
     room.lightWorld = LightWorld()
     room.lightWorld\setAmbientColor(0, 0, 0)
-    room.lightWorld\setRefractionStrength(16.0)
-    room.lightWorld\setReflectionVisibility(0.75)
+    -- room.lightWorld\setRefractionStrength(16.0)
+    -- room.lightWorld\setReflectionVisibility(0.75)
 
     if room.map.layers['NormalMap']
         load_normal_map(room)

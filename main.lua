@@ -950,6 +950,13 @@ end
 local drawables = { }
 do
   local _base_0 = {
+    mixout = function(self, msg, sender)
+      for key, obj in pairs(drawables) do
+        if obj == self then
+          table.remove(drawables, key)
+        end
+      end
+    end,
     remove = function(self, msg, sender)
       for key, obj in pairs(drawables) do
         if obj == self then
@@ -975,6 +982,36 @@ do
   })
   _base_0.__class = _class_0
   Drawable = _class_0
+end
+local lighting_drawables = { }
+do
+  local _base_0 = {
+    remove = function(self, msg, sender)
+      for key, obj in pairs(lighting_drawables) do
+        if obj == self then
+          table.remove(lighting_drawables, key)
+        end
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      table.insert(lighting_drawables, self)
+      return actor.send(self.id, "mixout", "Drawable")
+    end,
+    __base = _base_0,
+    __name = "LightingDrawable"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  LightingDrawable = _class_0
 end
 do
   local _base_0 = {
@@ -1929,7 +1966,6 @@ do
       return newbbox_quad(self)
     end,
     mixin = function(self, msg, sender)
-      print("mixxing in")
       return newbbox_quad(self)
     end,
     step = function(self, dt, sender)
@@ -3150,6 +3186,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
       self:_mixin(QuadSprite)
+      self:_mixin(LightingDrawable)
       self.sprite = self.room.map.tilesets[1].image
       self.quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, self.sprite:getWidth(), self.sprite:getHeight())
     end
@@ -4106,13 +4143,20 @@ love.draw = function()
   current_room.lightWorld:setTranslation(-camera._x, -camera._y, 1)
   love.graphics.push()
   love.graphics.translate(-camera._x, -camera._y)
+  for _, d in pairs(lighting_drawables) do
+    if d.room == current_room then
+      actor.send(d.id, 'draw_start', dt)
+      actor.send(d.id, 'draw', dt)
+      actor.send(d.id, 'draw_done', dt)
+    end
+  end
   current_room.lightWorld:draw(function(l, t, w, h, s)
     love.graphics.setColor(255, 255, 255)
     w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
     love.graphics.rectangle("fill", 0, -500, w, h)
-    return current_room.map.layers['Tile Layer 1']:draw()
+    current_room.map.layers['Tile Layer 1']:draw()
+    return actor.run()
   end)
-  current_room.map.layers['Objects']:draw()
   for _, d in pairs(drawables) do
     if d.room == current_room then
       actor.send(d.id, 'draw_start', dt)

@@ -172,8 +172,6 @@ new_room = function(map_file, object_create)
   room.map:box2d_init(room.world)
   room.lightWorld = LightWorld()
   room.lightWorld:setAmbientColor(0, 0, 0)
-  room.lightWorld:setRefractionStrength(16.0)
-  room.lightWorld:setReflectionVisibility(0.75)
   if room.map.layers['NormalMap'] then
     load_normal_map(room)
   end

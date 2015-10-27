@@ -423,10 +423,28 @@ class Drawable
     new: =>
         table.insert drawables, @
 
+    mixout: (msg, sender) =>
+        for key, obj in pairs drawables
+            if obj == @
+                table.remove drawables, key
+
     remove: (msg, sender) =>
         for key, obj in pairs drawables
             if obj == @
                 table.remove drawables, key
+
+
+-- Drawables that are drawn in the lighting system
+lighting_drawables = {}
+class LightingDrawable
+    new: =>
+        table.insert lighting_drawables, @
+        actor.send @id, "mixout", "Drawable"
+
+    remove: (msg, sender) =>
+        for key, obj in pairs lighting_drawables
+            if obj == @
+                table.remove lighting_drawables, key
 
 
 class AngledSprite
@@ -830,7 +848,6 @@ class BBoxedQuad extends BBoxed
         newbbox_quad(@)
 
     mixin: (msg, sender) =>
-        print "mixxing in"
         newbbox_quad(@)
 
     step: (dt, sender) =>
@@ -1300,6 +1317,7 @@ class Secretwall extends Object
         @\_mixin RoomOccupier
         @\_mixin Damageable
         @\_mixin QuadSprite
+        @\_mixin LightingDrawable
         @sprite = @room.map.tilesets[1].image
         @quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, @sprite\getWidth(), @sprite\getHeight())
 
@@ -1719,16 +1737,27 @@ love.draw = ->
     current_room.lightWorld\setTranslation(-camera._x, -camera._y, 1)
     love.graphics.push()
     love.graphics.translate(-camera._x, -camera._y)
+
+    for _, d in pairs lighting_drawables
+        if d.room == current_room
+            actor.send d.id, 'draw_start', dt
+            actor.send d.id, 'draw', dt
+            actor.send d.id, 'draw_done', dt
+
     current_room.lightWorld\draw (l, t, w, h, s) ->
         -- love.graphics.setColor 0, 0, 0
         love.graphics.setColor 255, 255, 255
         w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
         love.graphics.rectangle("fill", 0, -500, w, h)
+
         -- love.graphics.setColor 255, 255, 255
         current_room.map.layers['Tile Layer 1']\draw()
         -- current_room.map\box2d_draw()
 
-    current_room.map.layers['Objects']\draw()
+        actor.run()
+        
+    -- current_room.map.layers['Objects']\draw()
+
     for _, d in pairs drawables
         if d.room == current_room
             actor.send d.id, 'draw_start', dt
