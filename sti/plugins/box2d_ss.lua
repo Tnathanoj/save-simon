@@ -166,7 +166,7 @@ return {
 
     -- FIXME: should instead be specifying the layer that causes collision higher up
 		for _, layer in ipairs(map.layers) do
-      if layer.type == "tilelayer" and layer.properties.collidable ~= "false" then
+      if layer.type == "tilelayer" and layer.name ~= 'NormalMap' and layer.properties.collidable ~= "false" then
         for _, tileset in ipairs(map.tilesets) do
           for _, tile in ipairs(tileset.tiles) do
             local gid = tileset.firstgid + tile.id

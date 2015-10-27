@@ -1039,6 +1039,47 @@ do
   Sprite = _class_0
 end
 do
+  local _parent_0 = Sprite
+  local _base_0 = {
+    draw = function(self, msg, sender)
+      return love.graphics.draw(self.sprite, self.quad, self.x, self.y)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "QuadSprite",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Drawable'
+  }
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  QuadSprite = _class_0
+end
+do
   local _base_0 = {
     init = function(self, msg, sender)
       local a = {
@@ -1141,7 +1182,7 @@ do
       self.bboxed_quad_h = self.sprite:getHeight()
     end,
     __base = _base_0,
-    __name = "QuadSprite"
+    __name = "BBoxSprite"
   }, {
     __index = _base_0,
     __call = function(cls, ...)
@@ -1156,7 +1197,7 @@ do
     'Drawable',
     'BBoxedQuad'
   }
-  QuadSprite = _class_0
+  BBoxSprite = _class_0
 end
 do
   local _base_0 = {
@@ -2503,7 +2544,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      self:_mixin(QuadSprite)
+      self:_mixin(BBoxSprite)
       self:_mixin(DamageOnContact)
       self:_mixin(RemovedOnDamage)
       self:_mixin(RotatedRight)
@@ -2549,7 +2590,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      self:_mixin(QuadSprite)
+      self:_mixin(BBoxSprite)
       self:_mixin(RemovedOnDamage)
       self.dmg_pts = 10
       self.speed_max = 3000
@@ -2594,7 +2635,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      return self:_mixin(QuadSprite)
+      return self:_mixin(BBoxSprite)
     end,
     init = function(self, msg, sender)
       self.mass = 2
@@ -2638,7 +2679,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      return self:_mixin(QuadSprite)
+      return self:_mixin(BBoxSprite)
     end,
     init = function(self, msg, sender)
       self.mass = 1
@@ -3106,6 +3147,47 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Damageable)
+      self:_mixin(QuadSprite)
+      self.sprite = self.room.map.tilesets[1].image
+      self.quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, self.sprite:getWidth(), self.sprite:getHeight())
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Secretwall",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Secretwall = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
       self:add_handler("init", Steelball.init)
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
@@ -3370,7 +3452,7 @@ do
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/poison.png")
       self:_mixin(RoomOccupier)
-      self:_mixin(QuadSprite)
+      self:_mixin(BBoxSprite)
       self:_mixin(Touchable)
       self:_mixin(Poison)
       self:_mixin(Pickupable)
@@ -3502,7 +3584,7 @@ do
       self:_mixin(RoomOccupier)
       self:_mixin(Stepper)
       self:_mixin(BBoxedQuad)
-      self:_mixin(QuadSprite)
+      self:_mixin(BBoxSprite)
       return self:_mixin(Damageable)
     end,
     init = function(self, msg, sender)

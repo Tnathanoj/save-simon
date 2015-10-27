@@ -459,7 +459,15 @@ class Sprite
         love.graphics.setColor 255, 255, 255
 
 
-class QuadSprite
+-- Use a quad to draw a sprite
+class QuadSprite extends Sprite
+    @needs = {'Drawable'}
+
+    draw: (msg, sender) =>
+        love.graphics.draw @sprite, @quad, @x, @y
+
+
+class BBoxSprite
     @needs = {'Drawable', 'BBoxedQuad'}
 
     new: =>
@@ -1084,7 +1092,7 @@ class ThrowingKunai extends Object
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
         @\_mixin DamageOnContact
         @\_mixin RemovedOnDamage
         --@\_mixin NoDamageIfStill
@@ -1108,7 +1116,7 @@ class CinderBlock extends Object
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
         --@\_mixin DamageOnContact
         @\_mixin RemovedOnDamage
         --@\_mixin NoDamageIfStill
@@ -1132,7 +1140,7 @@ class Healthpotion extends Object
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
 
     init: (msg, sender) =>
         @mass = 2
@@ -1146,7 +1154,7 @@ class Gib extends Object
         --@\_mixin BBoxed
         --@\_mixin AngledSprite
         @\_mixin BBoxedQuad
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
 
     init: (msg, sender) =>
         @mass = 1
@@ -1287,34 +1295,13 @@ class Eye extends Object
             y + @y - @sprite2\getHeight()/2
 
 
-class Secret extends Object
+class Secretwall extends Object
     mixins: =>
-        --@\add_handler "init", Eye.init
-
-        @\_mixin Piercingvunerable
         @\_mixin RoomOccupier
         @\_mixin Damageable
---        @\_mixin Sprite
---        @\_mixin BBoxed
-        @\_mixin Gibable
-        @\_mixin Bleeds
-
-        @\add_handler "step", Secret.step
-        @\add_handler "draw", Secret.draw
-
-    init: (msg, sender) =>
-        @bbox_radius = 30
-
-   step: (dt, sender) =>
-        actor.send @id, 'cmd_attack'
-
-    draw: (msg, sender) =>
-        y = math.cos(love.timer.getTime() * 10) * 5
-        x = math.sin(love.timer.getTime() * 10) * 10
-        love.graphics.draw @sprite2,
-            x + @x - @sprite2\getWidth()/2,
-            y + @y - @sprite2\getHeight()/2
-
+        @\_mixin QuadSprite
+        @sprite = @room.map.tilesets[1].image
+        @quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, @sprite\getWidth(), @sprite\getHeight())
 
 
 class Steelball extends Object
@@ -1458,7 +1445,7 @@ class Poisonflask extends Object
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/poison.png"
         @\_mixin RoomOccupier
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
         @\_mixin Touchable
         @\_mixin Poison
         @\_mixin Pickupable
@@ -1503,7 +1490,7 @@ class VendingmachinePhysical extends Object
         @\_mixin RoomOccupier
         @\_mixin Stepper
         @\_mixin BBoxedQuad
-        @\_mixin QuadSprite
+        @\_mixin BBoxSprite
         @\_mixin Damageable
 
     init: (msg, sender) =>
@@ -1733,12 +1720,13 @@ love.draw = ->
     love.graphics.push()
     love.graphics.translate(-camera._x, -camera._y)
     current_room.lightWorld\draw (l, t, w, h, s) ->
+        -- love.graphics.setColor 0, 0, 0
         love.graphics.setColor 255, 255, 255
         w, h = love.graphics.getWidth() * 4, love.graphics.getHeight() * 2
         love.graphics.rectangle("fill", 0, -500, w, h)
+        -- love.graphics.setColor 255, 255, 255
         current_room.map.layers['Tile Layer 1']\draw()
-
-    -- current_room.map\box2d_draw()
+        -- current_room.map\box2d_draw()
 
     current_room.map.layers['Objects']\draw()
     for _, d in pairs drawables
