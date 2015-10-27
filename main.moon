@@ -155,7 +155,7 @@ class Gibable
 class Block extends Object
     mixins: =>
         @\_mixin ShortLived
-        @var_short_lived_life_time = 1
+        @var_short_lived_life_time = 2
 
         @\add_handler "init", Block.init
 
@@ -188,7 +188,7 @@ class Text extends Object
     draw: (msg, sender) =>
         love.graphics.push()
         love.graphics.translate(@x, @y)
-        love.graphics.scale(@scale, @scale)
+        love.graphics.scale(@scale * 0.8, @scale * 0.8)
         love.graphics.print(@text, 0, 0)
         love.graphics.pop()
 
@@ -1099,7 +1099,6 @@ class ContactableInTime
 
     step: (dt, sender) =>
         if @contactable_in_time_start_time + @var_contactable_in_time_life_time < love.timer.getTime()
-            @var_contactable_in_time_life_time = 10000
             actor.send @id, "mixin", "Contactable"
             actor.send @id, "mixout", "ContactableInTime"
 

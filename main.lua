@@ -246,7 +246,7 @@ do
   local _base_0 = {
     mixins = function(self)
       self:_mixin(ShortLived)
-      self.var_short_lived_life_time = 1
+      self.var_short_lived_life_time = 2
       self:add_handler("init", Block.init)
       self:_mixin(BBoxed)
       self:_mixin(RoomOccupier)
@@ -306,10 +306,7 @@ do
     draw = function(self, msg, sender)
       love.graphics.push()
       love.graphics.translate(self.x, self.y)
-      love.graphics.scale(self.scale, self.scale)
-      love.graphics.print(self.text, 0, 0)
-      love.graphics.setColor(255, 255, 255)
-      love.graphics.scale(self.scale * 0.9, self.scale * 0.9)
+      love.graphics.scale(self.scale * 0.8, self.scale * 0.8)
       love.graphics.print(self.text, 0, 0)
       return love.graphics.pop()
     end,
@@ -2460,7 +2457,6 @@ do
   local _base_0 = {
     step = function(self, dt, sender)
       if self.contactable_in_time_start_time + self.var_contactable_in_time_life_time < love.timer.getTime() then
-        self.var_contactable_in_time_life_time = 10000
         actor.send(self.id, "mixin", "Contactable")
         return actor.send(self.id, "mixout", "ContactableInTime")
       end
