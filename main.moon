@@ -165,6 +165,36 @@ class Block extends Object
         @quad = love.graphics.newQuad(2 * 32, 2 * 32, 16, 16, @sprite\getWidth(), @sprite\getHeight())
 
 
+class Text extends Object
+    mixins: =>
+        @\_mixin ShortLived
+        @var_short_lived_life_time = 2
+
+        @\add_handler "init", Text.init
+        @\add_handler "draw", Text.draw
+        @\add_handler "set_text", Text.set_text
+
+        --@\_mixin BBoxed
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+        @\_mixin Drawable
+
+    draw: (msg, sender) =>
+        love.graphics.push()
+        love.graphics.translate(@x, @y)
+        love.graphics.scale(@scale, @scale)
+        love.graphics.print(@text, 0, 0)
+        love.graphics.pop()
+
+    set_text: (text, sender) =>
+        @text = text
+
+    init: (msg, sender) =>
+        @text = "x"
+        @mass = 1
+        @restitution = 0.5 
+
+
 -- TODO: should disolve sprite of object
 class Dissolves
     die: (msg, sender) =>
@@ -346,6 +376,11 @@ class Bleeds
     dmg: (msg, sender) =>
         b = @blood_class() 
         actor.send b.id, 'set_pos', {@x, @y}
+
+        b = Text()
+        actor.send b.id, 'set_pos', {@x, @y - 60}
+        actor.send b.id, 'set_vel', {0, -50 - math.random() * 50}
+        actor.send b.id, 'set_text', "" .. msg.pts
 
 
 class Walker
@@ -1025,6 +1060,7 @@ class Player extends Object
         @room = current_room
         @faction = 'good'
         @hp = 100
+        @attack_range = 100
 
 
 -- Removes itself pretty soon
@@ -1467,6 +1503,7 @@ class Monster extends Object
 class Roach extends Object
     mixins: =>
         @blood_class = BugBlood
+        @sprite = love.graphics.newImage "assets/gfx/roach.png"
 
         @\_mixin RoomOccupier
         @\_mixin Damageable
@@ -1478,10 +1515,10 @@ class Roach extends Object
         --@\_mixin Attacker
         --@\_mixin PlayerBBoxed
         @\_mixin BBoxed
+        @\_mixin BBoxSprite
         --@\_mixin GibableBug
         @\_mixin Bleeds
         @\_mixin Controlled
-        @\_mixin Sprite
 
         @\_mixin Stompable
         @\_mixin Contactable
@@ -1491,8 +1528,6 @@ class Roach extends Object
 
         @dmg_pts = 5
         @hp = 20
-
-        @sprite = love.graphics.newImage "assets/gfx/roach.png"
 
         -- @anims['walking'] = anim "assets/gfx/roach.png", 32, 32, .175, 1, 0
         -- @anims["walking"]\setMode('once')

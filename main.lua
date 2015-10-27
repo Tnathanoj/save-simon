@@ -280,6 +280,65 @@ do
   Block = _class_0
 end
 do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(ShortLived)
+      self.var_short_lived_life_time = 2
+      self:add_handler("init", Text.init)
+      self:add_handler("draw", Text.draw)
+      self:add_handler("set_text", Text.set_text)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      return self:_mixin(Drawable)
+    end,
+    draw = function(self, msg, sender)
+      love.graphics.push()
+      love.graphics.translate(self.x, self.y)
+      love.graphics.scale(self.scale, self.scale)
+      love.graphics.print(self.text, 0, 0)
+      return love.graphics.pop()
+    end,
+    set_text = function(self, text, sender)
+      self.text = text
+    end,
+    init = function(self, msg, sender)
+      self.text = "x"
+      self.mass = 1
+      self.restitution = 0.5
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Text",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Text = _class_0
+end
+do
   local _base_0 = {
     die = function(self, msg, sender)
       local magnitude = 800
@@ -675,10 +734,20 @@ do
   local _base_0 = {
     dmg = function(self, msg, sender)
       local b = self:blood_class()
-      return actor.send(b.id, 'set_pos', {
+      actor.send(b.id, 'set_pos', {
         self.x,
         self.y
       })
+      b = Text()
+      actor.send(b.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(b.id, 'set_vel', {
+        0,
+        -50 - math.random() * 50
+      })
+      return actor.send(b.id, 'set_text', "" .. msg.pts)
     end
   }
   _base_0.__index = _base_0
@@ -2250,6 +2319,7 @@ do
       self.room = current_room
       self.faction = 'good'
       self.hp = 100
+      self.attack_range = 100
     end
   }
   _base_0.__index = _base_0
@@ -3469,20 +3539,20 @@ do
   local _base_0 = {
     mixins = function(self)
       self.blood_class = BugBlood
+      self.sprite = love.graphics.newImage("assets/gfx/roach.png")
       self:_mixin(RoomOccupier)
       self:_mixin(Damageable)
       self:_mixin(PlayerFollower)
       self:_mixin(BBoxed)
+      self:_mixin(BBoxSprite)
       self:_mixin(Bleeds)
       self:_mixin(Controlled)
-      self:_mixin(Sprite)
       self:_mixin(Stompable)
       self:_mixin(Contactable)
       self:_mixin(DamageOnContactSideOnly)
       self.var_damange_on_contact_so_time = 1
       self.dmg_pts = 5
       self.hp = 20
-      self.sprite = love.graphics.newImage("assets/gfx/roach.png")
       self.speed_max = 100
       self.attack_cooldown_time = 1.5
       self.faction = 'bad'
