@@ -696,7 +696,7 @@ class Contactable
 
 -- Gives HP
 class Hpbonus
-    touch: (msg, sender) =>
+    activate: (msg, sender) =>
         actor.send msg, 'hp', {pts: 10}
 
 
@@ -715,6 +715,11 @@ class Poison
 -- Object is able to be picked up
 class Pickupable
     touch: (msg, sender) =>
+        actor.send @id, "activate"
+        actor.send @id, "remove"
+
+    contact: (msg, sender) =>
+        actor.send @id, "activate"
         actor.send @id, "remove"
 
 
@@ -1563,7 +1568,7 @@ class Turkey extends Object
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/turkey.png"
         @\_mixin RoomOccupier
-        @\_mixin Touchable
+        @\_mixin Contactable
         @\_mixin Pickupable
         @\_mixin Hpbonus
         @\_mixin BBoxSprite

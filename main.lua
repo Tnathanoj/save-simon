@@ -1593,7 +1593,7 @@ do
 end
 do
   local _base_0 = {
-    touch = function(self, msg, sender)
+    activate = function(self, msg, sender)
       return actor.send(msg, 'hp', {
         pts = 10
       })
@@ -1662,6 +1662,11 @@ end
 do
   local _base_0 = {
     touch = function(self, msg, sender)
+      actor.send(self.id, "activate")
+      return actor.send(self.id, "remove")
+    end,
+    contact = function(self, msg, sender)
+      actor.send(self.id, "activate")
       return actor.send(self.id, "remove")
     end
   }
@@ -3696,7 +3701,7 @@ do
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
       self:_mixin(RoomOccupier)
-      self:_mixin(Touchable)
+      self:_mixin(Contactable)
       self:_mixin(Pickupable)
       self:_mixin(Hpbonus)
       return self:_mixin(BBoxSprite)
