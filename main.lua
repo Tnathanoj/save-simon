@@ -312,6 +312,36 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
+      local magnitude = 10
+      for i = 1, 1 do
+        local o = Turkey()
+        actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y
+        })
+        actor.send(o.id, 'set_vel', random_direction(magnitude))
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "DropsItems"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  DropsItems = _class_0
+end
+do
+  local _base_0 = {
+    die = function(self, msg, sender)
       local magnitude = 500
       for i = 1, 1 do
         local o = BugGiblet()
@@ -3277,6 +3307,7 @@ do
       self:_mixin(QuadSprite)
       self:_mixin(LightingDrawable)
       self:_mixin(Dissolves)
+      self:_mixin(DropsItems)
       self.sprite = self.room.map.tilesets[1].image
       self.quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, self.sprite:getWidth(), self.sprite:getHeight())
     end
@@ -3663,12 +3694,12 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
       self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
       self:_mixin(Touchable)
       self:_mixin(Pickupable)
       self:_mixin(Hpbonus)
-      self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
+      return self:_mixin(BBoxSprite)
     end
   }
   _base_0.__index = _base_0

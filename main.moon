@@ -165,12 +165,23 @@ class Block extends Object
         @quad = love.graphics.newQuad(2 * 32, 2 * 32, 16, 16, @sprite\getWidth(), @sprite\getHeight())
 
 
+-- TODO: should disolve sprite of object
 class Dissolves
     die: (msg, sender) =>
         magnitude = 800
 
         for i = 1, 4
             o = Block()
+            actor.send o.id, 'set_pos', {@x, @y}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
+
+class DropsItems
+    die: (msg, sender) =>
+        magnitude = 10
+
+        for i = 1, 1
+            o = Turkey()
             actor.send o.id, 'set_pos', {@x, @y}
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
@@ -1376,6 +1387,7 @@ class Secretwall extends Object
         @\_mixin QuadSprite
         @\_mixin LightingDrawable
         @\_mixin Dissolves
+        @\_mixin DropsItems
         @sprite = @room.map.tilesets[1].image
         @quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, @sprite\getWidth(), @sprite\getHeight())
 
@@ -1549,12 +1561,12 @@ class Goldbar extends Object
 
 class Turkey extends Object
     mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/turkey.png"
         @\_mixin RoomOccupier
-        @\_mixin Sprite
         @\_mixin Touchable
         @\_mixin Pickupable
         @\_mixin Hpbonus
-        @sprite = love.graphics.newImage "assets/gfx/turkey.png"
+        @\_mixin BBoxSprite
 
 
 class VendingmachinePhysical extends Object
@@ -1678,7 +1690,6 @@ love.mousereleased = (x, y, button) ->
 
         o = Block()
         actor.send o.id, 'set_pos', {x, y}
-
 
 
 export player = {}
