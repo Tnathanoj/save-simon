@@ -148,9 +148,6 @@ class Gibable
 
 class Block extends Object
     mixins: =>
-        -- @sprite = love.graphics.newImage "assets/gfx/giblet.png"
-        -- super!
-
         @\_mixin ShortLived
         @var_short_lived_life_time = 1
 
@@ -159,11 +156,7 @@ class Block extends Object
         @\_mixin BBoxed
         @\_mixin RoomOccupier
         @\_mixin Stepper
-
-        -- @\_mixin BBoxedQuad
-        -- @\_mixin BBoxSprite
         @\_mixin QuadSprite
-        
 
     init: (msg, sender) =>
         @mass = 1
@@ -457,12 +450,14 @@ class Poisoned
 drawables = {}
 class Drawable
     new: =>
+        @scale = 1
         table.insert drawables, @
 
     mixout: (msg, sender) =>
-        for key, obj in pairs drawables
-            if obj == @
-                table.remove drawables, key
+        if msg == "Drawable"
+            for key, obj in pairs drawables
+                if obj == @
+                    table.remove drawables, key
 
     remove: (msg, sender) =>
         for key, obj in pairs drawables
@@ -490,7 +485,9 @@ class AngledSprite
             love.graphics.draw @sprite,
                 @x - @sprite\getWidth()/2,
                 @y - @sprite\getHeight()/2,
-                math.rad(@body\getAngle())
+                math.rad(@body\getAngle()),
+                @scale,
+                @scale
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -499,15 +496,24 @@ class AngledSprite
 class Sprite
     @needs = {'Drawable'}
 
+    new: =>
+        @scale = 1
+
     draw: (msg, sender) =>
         if @world_obj
             love.graphics.draw @sprite,
                 @x - @sprite\getWidth()/2,
-                @y + @world_obj.height - @sprite\getHeight()
+                @y + @world_obj.height - @sprite\getHeight(),
+                0,
+                @scale,
+                @scale
         else
             love.graphics.draw @sprite,
                 @x - @sprite\getWidth()/2,
-                @y - @sprite\getHeight()/2
+                @y - @sprite\getHeight()/2,
+                0,
+                @scale,
+                @scale
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -518,7 +524,11 @@ class QuadSprite extends Sprite
     @needs = {'Drawable'}
 
     draw: (msg, sender) =>
-        love.graphics.draw @sprite, @quad, @x, @y
+        -- love.graphics.push()
+        -- love.graphics.translate(@x, @y)
+        -- love.graphics.scale(@scale, @scale)
+        love.graphics.draw @sprite, @quad, @x, @y, 0, @scale 
+        -- love.graphics.pop()
 
 
 class BBoxSprite
@@ -539,12 +549,22 @@ class BBoxSprite
 
     draw: (msg, sender) =>
         x1, y1, x2, y2, x3, y3, x4, y4 = @body\getWorldPoints(@shape\getPoints())
-        a = { x1, y1, 0, 0, 255, 255, 255 }
-        b = { x2, y2, 1, 0, 255, 255, 255 }
-        c = { x3, y3, 1, 1, 255, 255, 255 }
-        d = { x4, y4, 0, 1, 255, 255, 255 }
+
+        -- We subtract the x and y because we want to do translate below
+        -- We want to do translate below because we want to be able to scale
+        a = { x1 - @x, y1 - @y, 0, 0, 255, 255, 255 }
+        b = { x2 - @x, y2 - @y, 1, 0, 255, 255, 255 }
+        c = { x3 - @x, y3 - @y, 1, 1, 255, 255, 255 }
+        d = { x4 - @x, y4 - @y, 0, 1, 255, 255, 255 }
         @mesh\setVertices({a,b,c,d})
-        love.graphics.draw @mesh, 0, 0
+
+        -- love.graphics.draw @mesh, 0, 0, 0, @scale, @scale
+
+        love.graphics.push()
+        love.graphics.translate(@x, @y)
+        love.graphics.scale(@scale, @scale)
+        love.graphics.draw @mesh, 0, 0 
+        love.graphics.pop()
 
     draw_done: (msg, sender) =>
         love.graphics.setColor 255, 255, 255
@@ -998,6 +1018,7 @@ class ShortLived
         @short_lived_start_time = love.timer.getTime()
 
     step: (dt, sender) =>
+        @scale = 1 - (love.timer.getTime() - @short_lived_start_time) / @var_short_lived_life_time
         if @short_lived_start_time + @var_short_lived_life_time < love.timer.getTime()
             actor.send @id, "remove"
 

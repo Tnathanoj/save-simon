@@ -1030,9 +1030,11 @@ local drawables = { }
 do
   local _base_0 = {
     mixout = function(self, msg, sender)
-      for key, obj in pairs(drawables) do
-        if obj == self then
-          table.remove(drawables, key)
+      if msg == "Drawable" then
+        for key, obj in pairs(drawables) do
+          if obj == self then
+            table.remove(drawables, key)
+          end
         end
       end
     end,
@@ -1047,6 +1049,7 @@ do
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
     __init = function(self)
+      self.scale = 1
       return table.insert(drawables, self)
     end,
     __base = _base_0,
@@ -1095,7 +1098,7 @@ end
 do
   local _base_0 = {
     draw = function(self, msg, sender)
-      return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2, math.rad(self.body:getAngle()))
+      return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2, math.rad(self.body:getAngle()), self.scale, self.scale)
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)
@@ -1125,9 +1128,9 @@ do
   local _base_0 = {
     draw = function(self, msg, sender)
       if self.world_obj then
-        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight())
+        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y + self.world_obj.height - self.sprite:getHeight(), 0, self.scale, self.scale)
       else
-        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2)
+        return love.graphics.draw(self.sprite, self.x - self.sprite:getWidth() / 2, self.y - self.sprite:getHeight() / 2, 0, self.scale, self.scale)
       end
     end,
     draw_done = function(self, msg, sender)
@@ -1136,7 +1139,9 @@ do
   }
   _base_0.__index = _base_0
   local _class_0 = setmetatable({
-    __init = function() end,
+    __init = function(self)
+      self.scale = 1
+    end,
     __base = _base_0,
     __name = "Sprite"
   }, {
@@ -1158,7 +1163,7 @@ do
   local _parent_0 = Sprite
   local _base_0 = {
     draw = function(self, msg, sender)
-      return love.graphics.draw(self.sprite, self.quad, self.x, self.y)
+      return love.graphics.draw(self.sprite, self.quad, self.x, self.y, 0, self.scale)
     end
   }
   _base_0.__index = _base_0
@@ -1244,8 +1249,8 @@ do
     draw = function(self, msg, sender)
       local x1, y1, x2, y2, x3, y3, x4, y4 = self.body:getWorldPoints(self.shape:getPoints())
       local a = {
-        x1,
-        y1,
+        x1 - self.x,
+        y1 - self.y,
         0,
         0,
         255,
@@ -1253,8 +1258,8 @@ do
         255
       }
       local b = {
-        x2,
-        y2,
+        x2 - self.x,
+        y2 - self.y,
         1,
         0,
         255,
@@ -1262,8 +1267,8 @@ do
         255
       }
       local c = {
-        x3,
-        y3,
+        x3 - self.x,
+        y3 - self.y,
         1,
         1,
         255,
@@ -1271,8 +1276,8 @@ do
         255
       }
       local d = {
-        x4,
-        y4,
+        x4 - self.x,
+        y4 - self.y,
         0,
         1,
         255,
@@ -1285,7 +1290,11 @@ do
         c,
         d
       })
-      return love.graphics.draw(self.mesh, 0, 0)
+      love.graphics.push()
+      love.graphics.translate(self.x, self.y)
+      love.graphics.scale(self.scale, self.scale)
+      love.graphics.draw(self.mesh, 0, 0)
+      return love.graphics.pop()
     end,
     draw_done = function(self, msg, sender)
       return love.graphics.setColor(255, 255, 255)
@@ -2241,6 +2250,7 @@ end
 do
   local _base_0 = {
     step = function(self, dt, sender)
+      self.scale = 1 - (love.timer.getTime() - self.short_lived_start_time) / self.var_short_lived_life_time
       if self.short_lived_start_time + self.var_short_lived_life_time < love.timer.getTime() then
         return actor.send(self.id, "remove")
       end
