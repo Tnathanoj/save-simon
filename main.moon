@@ -105,6 +105,12 @@ class Damageable
         @hp += msg.pts
         @hp = @hp_max if @hp_max < @hp
 
+        b = Text()
+        actor.send b.id, 'set_pos', {@x, @y - 60}
+        actor.send b.id, 'set_vel', {0, -50 - math.random() * 50}
+        actor.send b.id, 'set_text', "+" .. msg.pts
+        actor.send b.id, 'mixin', "Green"
+
 
 class PainfulTouch
     @needs = {'Touchable'}
@@ -253,7 +259,6 @@ class GibableWithBones
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
-
 class DamageOnContact
     @needs = {'Contactable'}
 
@@ -380,7 +385,8 @@ class Bleeds
         b = Text()
         actor.send b.id, 'set_pos', {@x, @y - 60}
         actor.send b.id, 'set_vel', {0, -50 - math.random() * 50}
-        actor.send b.id, 'set_text', "" .. msg.pts
+        actor.send b.id, 'set_text', "-" .. msg.pts
+        actor.send b.id, 'mixin', "Red"
 
 
 class Walker
@@ -488,9 +494,17 @@ class Burning
         love.graphics.setColor 255, 0, 0
 
 
-class Poisoned
+class Green
     draw_start: (msg, sender) =>
         love.graphics.setColor 0, 255, 0
+
+
+class Red
+    draw_start: (msg, sender) =>
+        love.graphics.setColor 255, 0, 0
+
+
+class Poisoned extends Green
 
 
 drawables = {}
@@ -732,7 +746,7 @@ class Contactable
 -- Gives HP
 class Hpbonus
     activate: (msg, sender) =>
-        actor.send msg, 'hp', {pts: 10}
+        actor.send msg.activator_id, "hp", {pts: 10}
 
 
 -- Removes Poisoned
@@ -750,12 +764,13 @@ class Poison
 -- Object is able to be picked up
 class Pickupable
     touch: (msg, sender) =>
-        actor.send @id, "activate"
+        actor.send @id, "activate", {activator_id: msg}
         actor.send @id, "remove"
 
     contact: (msg, sender) =>
-        actor.send @id, "activate"
-        actor.send @id, "remove"
+        if msg.other_faction != nil
+            actor.send @id, "activate", {activator_id: msg.other_id}
+            actor.send @id, "remove"
 
 
 class Attacker
@@ -1073,6 +1088,20 @@ class ShortLived
         @scale = 1 - (love.timer.getTime() - @short_lived_start_time) / @var_short_lived_life_time
         if @short_lived_start_time + @var_short_lived_life_time < love.timer.getTime()
             actor.send @id, "remove"
+
+
+-- Eventually becomes contactable
+class ContactableInTime
+    @needs = {'Stepper'}
+    new: =>
+        @var_contactable_in_time_life_time = 1
+        @contactable_in_time_start_time = love.timer.getTime()
+
+    step: (dt, sender) =>
+        if @contactable_in_time_start_time + @var_contactable_in_time_life_time < love.timer.getTime()
+            @var_contactable_in_time_life_time = 10000
+            actor.send @id, "mixin", "Contactable"
+            actor.send @id, "mixout", "ContactableInTime"
 
 
 -- Emits blood
@@ -1602,8 +1631,8 @@ class Goldbar extends Object
 class Turkey extends Object
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/turkey.png"
+        @\_mixin ContactableInTime
         @\_mixin RoomOccupier
-        @\_mixin Contactable
         @\_mixin Pickupable
         @\_mixin Hpbonus
         @\_mixin BBoxSprite

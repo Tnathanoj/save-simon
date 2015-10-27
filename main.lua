@@ -107,6 +107,17 @@ do
       if self.hp_max < self.hp then
         self.hp = self.hp_max
       end
+      local b = Text()
+      actor.send(b.id, 'set_pos', {
+        self.x,
+        self.y - 60
+      })
+      actor.send(b.id, 'set_vel', {
+        0,
+        -50 - math.random() * 50
+      })
+      actor.send(b.id, 'set_text', "+" .. msg.pts)
+      return actor.send(b.id, 'mixin', "Green")
     end
   }
   _base_0.__index = _base_0
@@ -296,6 +307,9 @@ do
       love.graphics.push()
       love.graphics.translate(self.x, self.y)
       love.graphics.scale(self.scale, self.scale)
+      love.graphics.print(self.text, 0, 0)
+      love.graphics.setColor(255, 255, 255)
+      love.graphics.scale(self.scale * 0.9, self.scale * 0.9)
       love.graphics.print(self.text, 0, 0)
       return love.graphics.pop()
     end,
@@ -747,7 +761,8 @@ do
         0,
         -50 - math.random() * 50
       })
-      return actor.send(b.id, 'set_text', "" .. msg.pts)
+      actor.send(b.id, 'set_text', "-" .. msg.pts)
+      return actor.send(b.id, 'mixin', "Red")
     end
   }
   _base_0.__index = _base_0
@@ -1113,7 +1128,7 @@ do
   local _class_0 = setmetatable({
     __init = function() end,
     __base = _base_0,
-    __name = "Poisoned"
+    __name = "Green"
   }, {
     __index = _base_0,
     __call = function(cls, ...)
@@ -1123,6 +1138,61 @@ do
     end
   })
   _base_0.__class = _class_0
+  Green = _class_0
+end
+do
+  local _base_0 = {
+    draw_start = function(self, msg, sender)
+      return love.graphics.setColor(255, 0, 0)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "Red"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  Red = _class_0
+end
+do
+  local _parent_0 = Green
+  local _base_0 = { }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Poisoned",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
   Poisoned = _class_0
 end
 local drawables = { }
@@ -1663,7 +1733,7 @@ end
 do
   local _base_0 = {
     activate = function(self, msg, sender)
-      return actor.send(msg, 'hp', {
+      return actor.send(msg.activator_id, "hp", {
         pts = 10
       })
     end
@@ -1731,12 +1801,18 @@ end
 do
   local _base_0 = {
     touch = function(self, msg, sender)
-      actor.send(self.id, "activate")
+      actor.send(self.id, "activate", {
+        activator_id = msg
+      })
       return actor.send(self.id, "remove")
     end,
     contact = function(self, msg, sender)
-      actor.send(self.id, "activate")
-      return actor.send(self.id, "remove")
+      if msg.other_faction ~= nil then
+        actor.send(self.id, "activate", {
+          activator_id = msg.other_id
+        })
+        return actor.send(self.id, "remove")
+      end
     end
   }
   _base_0.__index = _base_0
@@ -2379,6 +2455,39 @@ do
   })
   _base_0.__class = _class_0
   ShortLived = _class_0
+end
+do
+  local _base_0 = {
+    step = function(self, dt, sender)
+      if self.contactable_in_time_start_time + self.var_contactable_in_time_life_time < love.timer.getTime() then
+        self.var_contactable_in_time_life_time = 10000
+        actor.send(self.id, "mixin", "Contactable")
+        return actor.send(self.id, "mixout", "ContactableInTime")
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.var_contactable_in_time_life_time = 1
+      self.contactable_in_time_start_time = love.timer.getTime()
+    end,
+    __base = _base_0,
+    __name = "ContactableInTime"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Stepper'
+  }
+  ContactableInTime = _class_0
 end
 do
   local _base_0 = {
@@ -3770,8 +3879,8 @@ do
   local _base_0 = {
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
+      self:_mixin(ContactableInTime)
       self:_mixin(RoomOccupier)
-      self:_mixin(Contactable)
       self:_mixin(Pickupable)
       self:_mixin(Hpbonus)
       return self:_mixin(BBoxSprite)
