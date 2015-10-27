@@ -146,6 +146,42 @@ class Gibable
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
+class Block extends Object
+    mixins: =>
+        -- @sprite = love.graphics.newImage "assets/gfx/giblet.png"
+        -- super!
+
+        @\_mixin ShortLived
+        @var_short_lived_life_time = 1
+
+        @\add_handler "init", Block.init
+
+        @\_mixin BBoxed
+        @\_mixin RoomOccupier
+        @\_mixin Stepper
+
+        -- @\_mixin BBoxedQuad
+        -- @\_mixin BBoxSprite
+        @\_mixin QuadSprite
+        
+
+    init: (msg, sender) =>
+        @mass = 1
+        @restitution = 0.5 
+        @sprite = @room.map.tilesets[1].image
+        @quad = love.graphics.newQuad(2 * 32, 2 * 32, 16, 16, @sprite\getWidth(), @sprite\getHeight())
+
+
+class Dissolves
+    die: (msg, sender) =>
+        magnitude = 800
+
+        for i = 1, 4
+            o = Block()
+            actor.send o.id, 'set_pos', {@x, @y}
+            actor.send o.id, 'set_vel', random_direction(magnitude)
+
+
 class GibableBug
     die: (msg, sender) =>
         magnitude = 500
@@ -1318,6 +1354,7 @@ class Secretwall extends Object
         @\_mixin Damageable
         @\_mixin QuadSprite
         @\_mixin LightingDrawable
+        @\_mixin Dissolves
         @sprite = @room.map.tilesets[1].image
         @quad = love.graphics.newQuad(2 * 32, 2 * 32, 32, 32, @sprite\getWidth(), @sprite\getHeight())
 
@@ -1618,7 +1655,7 @@ love.mousereleased = (x, y, button) ->
         player\_start!
         actor.send player.id, 'click', {x, y}
 
-        o = Roach()
+        o = Block()
         actor.send o.id, 'set_pos', {x, y}
 
 
