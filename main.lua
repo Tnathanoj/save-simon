@@ -208,7 +208,7 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
-      local magnitude = 800
+      local magnitude = 300
       local o = Heart()
       actor.send(o.id, 'set_pos', {
         self.x,
@@ -246,7 +246,7 @@ do
   local _base_0 = {
     mixins = function(self)
       self:_mixin(ShortLived)
-      self.var_short_lived_life_time = 2
+      self.var_short_lived_life_time = 1
       self:add_handler("init", Block.init)
       self:_mixin(BBoxed)
       self:_mixin(RoomOccupier)
@@ -1161,7 +1161,11 @@ do
 end
 do
   local _parent_0 = Green
-  local _base_0 = { }
+  local _base_0 = {
+    draw_start = function(self, msg, sender)
+      return _parent_0.draw_start(self, msg, sender)
+    end
+  }
   _base_0.__index = _base_0
   setmetatable(_base_0, _parent_0.__base)
   local _class_0 = setmetatable({
@@ -1210,6 +1214,9 @@ do
           table.remove(drawables, key)
         end
       end
+    end,
+    draw_done = function(self, msg, sender)
+      return love.graphics.setColor(255, 255, 255)
     end
   }
   _base_0.__index = _base_0
@@ -2231,7 +2238,9 @@ do
       return newbbox_quad(self)
     end,
     mixin = function(self, msg, sender)
-      return newbbox_quad(self)
+      if msg == 'BBoxedQuad' then
+        return newbbox_quad(self)
+      end
     end,
     step = function(self, dt, sender)
       return _parent_0.step(self, dt, sender)
@@ -3017,8 +3026,8 @@ do
       return self:_mixin(BBoxSprite)
     end,
     init = function(self, msg, sender)
-      self.mass = 1
-      self.restitution = 0.5
+      self.mass = 0.4
+      self.restitution = 0.1
     end
   }
   _base_0.__index = _base_0
@@ -3098,10 +3107,10 @@ do
       else
         self.sprite = love.graphics.newImage("assets/gfx/melon_gib2.png")
       end
-      self:_mixin(Touchable)
+      _parent_0.mixins(self)
+      self:_mixin(ContactableInTime)
       self:_mixin(Pickupable)
-      self:_mixin(Hpbonus)
-      return _parent_0.mixins(self)
+      return self:_mixin(Hpbonus)
     end
   }
   _base_0.__index = _base_0
@@ -3148,7 +3157,7 @@ do
       self.restitution = 1
     end,
     die = function(self, msg, sender)
-      local magnitude = 600
+      local magnitude = 200
       for i = 1, 5 do
         local o = Watermelongib()
         actor.send(o.id, 'set_pos', {
@@ -3833,11 +3842,49 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
+      self:_mixin(ContactableInTime)
       self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
-      self:_mixin(Touchable)
       self:_mixin(Pickupable)
+      self:_mixin(Hpbonus)
+      return self:_mixin(BBoxSprite)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Item",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Item = _class_0
+end
+do
+  local _parent_0 = Item
+  local _base_0 = {
+    mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/goldbar.png")
+      return _parent_0.mixins(self)
     end
   }
   _base_0.__index = _base_0
@@ -3871,15 +3918,11 @@ do
   Goldbar = _class_0
 end
 do
-  local _parent_0 = Object
+  local _parent_0 = Item
   local _base_0 = {
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
-      self:_mixin(ContactableInTime)
-      self:_mixin(RoomOccupier)
-      self:_mixin(Pickupable)
-      self:_mixin(Hpbonus)
-      return self:_mixin(BBoxSprite)
+      return _parent_0.mixins(self)
     end
   }
   _base_0.__index = _base_0

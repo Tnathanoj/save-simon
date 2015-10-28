@@ -140,7 +140,7 @@ class SmokeWhenDead
 
 class Gibable
     die: (msg, sender) =>
-        magnitude = 800
+        magnitude = 300
 
         o = Heart()
         actor.send o.id, 'set_pos', {@x, @y - 60}
@@ -155,7 +155,7 @@ class Gibable
 class Block extends Object
     mixins: =>
         @\_mixin ShortLived
-        @var_short_lived_life_time = 2
+        @var_short_lived_life_time = 1
 
         @\add_handler "init", Block.init
 
@@ -505,6 +505,8 @@ class Red
 
 
 class Poisoned extends Green
+    draw_start: (msg, sender) =>
+        super msg, sender
 
 
 drawables = {}
@@ -523,6 +525,9 @@ class Drawable
         for key, obj in pairs drawables
             if obj == @
                 table.remove drawables, key
+
+    draw_done: (msg, sender) =>
+        love.graphics.setColor 255, 255, 255
 
 
 -- Drawables that are drawn in the lighting system
@@ -970,7 +975,8 @@ class BBoxedQuad extends BBoxed
         newbbox_quad(@)
 
     mixin: (msg, sender) =>
-        newbbox_quad(@)
+        if msg == 'BBoxedQuad'
+            newbbox_quad(@)
 
     step: (dt, sender) =>
         super dt, sender
@@ -1311,8 +1317,8 @@ class Gib extends Object
         @\_mixin BBoxSprite
 
     init: (msg, sender) =>
-        @mass = 1
-        @restitution = 0.5 
+        @mass = 0.4
+        @restitution = 0.1
 
 
 class Skull extends Gib
@@ -1327,10 +1333,12 @@ class Watermelongib extends Gib
           @sprite = love.graphics.newImage "assets/gfx/melon_gib.png"
         else
           @sprite = love.graphics.newImage "assets/gfx/melon_gib2.png"
-        @\_mixin Touchable
+
+        super!
+
+        @\_mixin ContactableInTime
         @\_mixin Pickupable
         @\_mixin Hpbonus
-        super!
 
 
 class Watermelon extends Gib
@@ -1346,7 +1354,7 @@ class Watermelon extends Gib
         @restitution = 1
 
     die: (msg, sender) =>
-        magnitude = 600
+        magnitude = 200
 
         for i = 1, 5
             o = Watermelongib()
@@ -1616,25 +1624,25 @@ class Poisonflask extends Object
 --        actor.send @id, 'set_vel', {velx * 5000, -3000}
 
 
-class Goldbar extends Object
+class Item extends Object
     mixins: =>
-        @\_mixin RoomOccupier
-        @\_mixin Sprite
-        @\_mixin Touchable
-        @\_mixin Pickupable
-        --@\_mixin Falls
-        --@\_mixin BBoxed
-        @sprite = love.graphics.newImage "assets/gfx/goldbar.png"
-
-
-class Turkey extends Object
-    mixins: =>
-        @sprite = love.graphics.newImage "assets/gfx/turkey.png"
         @\_mixin ContactableInTime
         @\_mixin RoomOccupier
         @\_mixin Pickupable
         @\_mixin Hpbonus
         @\_mixin BBoxSprite
+
+
+class Goldbar extends Item
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/goldbar.png"
+        super!
+
+
+class Turkey extends Item
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/turkey.png"
+        super!
 
 
 class VendingmachinePhysical extends Object
