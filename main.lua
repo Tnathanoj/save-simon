@@ -1465,7 +1465,7 @@ do
       })
       love.graphics.push()
       love.graphics.translate(self.x, self.y)
-      love.graphics.scale(self.scale, self.scale)
+      love.graphics.scale(self.scale * 1.1, self.scale * 1.1)
       love.graphics.draw(self.mesh, 0, 0)
       return love.graphics.pop()
     end,
@@ -3065,7 +3065,10 @@ do
   local _base_0 = {
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/skull.png")
-      return _parent_0.mixins(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Stepper)
+      self:_mixin(AngledSprite)
+      return self:_mixin(BBoxedQuad)
     end
   }
   _base_0.__index = _base_0

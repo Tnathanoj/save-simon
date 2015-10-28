@@ -627,7 +627,7 @@ class BBoxSprite
 
         love.graphics.push()
         love.graphics.translate(@x, @y)
-        love.graphics.scale(@scale, @scale)
+        love.graphics.scale(@scale * 1.1, @scale * 1.1)
         love.graphics.draw @mesh, 0, 0 
         love.graphics.pop()
 
