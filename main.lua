@@ -2346,7 +2346,7 @@ do
   local _class_0 = setmetatable({
     __init = function(self)
       self.last_jump_time = 0
-      self.jump_impulse = 2000
+      self.jump_impulse = 1700
       self.jump_cooldown = 0.3
     end,
     __base = _base_0,
@@ -2369,7 +2369,7 @@ end
 do
   local _base_0 = {
     cmd_up_released = function(self, msg, sender)
-      if not self.touching_ground and not self.double_jumped and self.last_jump_time + self.jump_cooldown < love.timer.getTime() and self.y_vel < 0 then
+      if not self.touching_ground and not self.double_jumped and self.last_jump_time + self.jump_cooldown < love.timer.getTime() then
         self.body:applyLinearImpulse(0, -self.jump_impulse)
         self.double_jumped = true
         return actor.send(Smoke().id, 'set_pos', {

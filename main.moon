@@ -1029,7 +1029,7 @@ class Jumper
     
     new: =>
         @last_jump_time = 0
-        @jump_impulse = 2000
+        @jump_impulse = 1700
         @jump_cooldown = 0.3
 
     cmd_up: (msg, sender) =>
@@ -1047,7 +1047,7 @@ class DoubleJumper
         @double_jumped = false
 
     cmd_up_released: (msg, sender) =>
-        if not @touching_ground and not @double_jumped and @last_jump_time + @jump_cooldown < love.timer.getTime() and @y_vel < 0
+        if not @touching_ground and not @double_jumped and @last_jump_time + @jump_cooldown < love.timer.getTime()-- and @y_vel < 0
             @body\applyLinearImpulse 0, -@jump_impulse
             @double_jumped = true
             actor.send Smoke().id, 'set_pos', {@x, @y}
