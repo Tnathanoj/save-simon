@@ -1039,6 +1039,26 @@ class Jumper
             @body\applyLinearImpulse 0, -@jump_impulse
 
 
+-- Jumps if up is pushed
+class DoubleJumper
+    @needs = {'Jumper'}
+    
+    new: =>
+        @double_jumped = false
+
+    cmd_up_released: (msg, sender) =>
+        if not @touching_ground and not @double_jumped and @last_jump_time + @jump_cooldown < love.timer.getTime() and @y_vel < 0
+            @last_jump_time = love.timer.getTime()
+            @body\applyLinearImpulse 0, -@jump_impulse
+            @double_jumped = true
+            o = Smoke()
+            actor.send o.id, 'set_pos', {@x, @y}
+
+    step: (msg, sender) =>
+        if @touching_ground
+            @double_jumped = false
+
+
 -- concrete
 class Player extends Object
     mixins: =>
@@ -1056,6 +1076,7 @@ class Player extends Object
         --@\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
+        @\_mixin DoubleJumper
         @\_mixin Activator
         @\_mixin Bleeds
         @\_mixin RunSmokey
@@ -1639,6 +1660,17 @@ class Goldbar extends Item
         super!
 
 
+class DoubleJumpPotion extends Item
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/poison.png"
+        super!
+
+        @\add_handler "init", DoubleJumpPotion.contact
+
+    contact: (msg, sender) =>
+        actor.send msg, "mixin", "DoubleJumper"
+
+
 class Turkey extends Item
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/turkey.png"
@@ -1869,6 +1901,10 @@ love.update = (dt) ->
     update_camera(dt)
 
     current_room.lightWorld\update(dt)
+
+love.keyreleased = (key) ->
+    if key == "up"
+        actor.send player.id, 'cmd_up_released'
 
 
 draw_hp_bar = (x, y, edge, w, h, ratio) ->

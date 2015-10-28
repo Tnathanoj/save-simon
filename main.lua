@@ -2367,6 +2367,48 @@ do
   Jumper = _class_0
 end
 do
+  local _base_0 = {
+    cmd_up_released = function(self, msg, sender)
+      if not self.touching_ground and not self.double_jumped and self.last_jump_time + self.jump_cooldown < love.timer.getTime() and self.y_vel < 0 then
+        self.last_jump_time = love.timer.getTime()
+        self.body:applyLinearImpulse(0, -self.jump_impulse)
+        self.double_jumped = true
+        local o = Smoke()
+        return actor.send(o.id, 'set_pos', {
+          self.x,
+          self.y
+        })
+      end
+    end,
+    step = function(self, msg, sender)
+      if self.touching_ground then
+        self.double_jumped = false
+      end
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function(self)
+      self.double_jumped = false
+    end,
+    __base = _base_0,
+    __name = "DoubleJumper"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  local self = _class_0
+  self.needs = {
+    'Jumper'
+  }
+  DoubleJumper = _class_0
+end
+do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
@@ -2381,6 +2423,7 @@ do
       self:_mixin(GibableWithBones)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
+      self:_mixin(DoubleJumper)
       self:_mixin(Activator)
       self:_mixin(Bleeds)
       self:_mixin(RunSmokey)
@@ -3065,10 +3108,7 @@ do
   local _base_0 = {
     mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/skull.png")
-      self:_mixin(RoomOccupier)
-      self:_mixin(Stepper)
-      self:_mixin(AngledSprite)
-      return self:_mixin(BBoxedQuad)
+      return _parent_0.mixins(self)
     end
   }
   _base_0.__index = _base_0
@@ -3924,6 +3964,48 @@ do
   local _parent_0 = Item
   local _base_0 = {
     mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
+      _parent_0.mixins(self)
+      return self:add_handler("init", DoubleJumpPotion.contact)
+    end,
+    contact = function(self, msg, sender)
+      return actor.send(msg, "mixin", "DoubleJumper")
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "DoubleJumpPotion",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  DoubleJumpPotion = _class_0
+end
+do
+  local _parent_0 = Item
+  local _base_0 = {
+    mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/turkey.png")
       return _parent_0.mixins(self)
     end
@@ -4478,6 +4560,11 @@ love.update = function(dt)
   current_room.world:update(dt)
   update_camera(dt)
   return current_room.lightWorld:update(dt)
+end
+love.keyreleased = function(key)
+  if key == "up" then
+    return actor.send(player.id, 'cmd_up_released')
+  end
 end
 local draw_hp_bar
 draw_hp_bar = function(x, y, edge, w, h, ratio)
