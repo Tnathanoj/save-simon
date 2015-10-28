@@ -1048,15 +1048,12 @@ class DoubleJumper
 
     cmd_up_released: (msg, sender) =>
         if not @touching_ground and not @double_jumped and @last_jump_time + @jump_cooldown < love.timer.getTime() and @y_vel < 0
-            @last_jump_time = love.timer.getTime()
             @body\applyLinearImpulse 0, -@jump_impulse
             @double_jumped = true
-            o = Smoke()
-            actor.send o.id, 'set_pos', {@x, @y}
+            actor.send Smoke().id, 'set_pos', {@x, @y}
 
-    step: (msg, sender) =>
-        if @touching_ground
-            @double_jumped = false
+    touch_ground: (msg, sender) =>
+        @double_jumped = false
 
 
 -- concrete

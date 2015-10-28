@@ -2370,20 +2370,16 @@ do
   local _base_0 = {
     cmd_up_released = function(self, msg, sender)
       if not self.touching_ground and not self.double_jumped and self.last_jump_time + self.jump_cooldown < love.timer.getTime() and self.y_vel < 0 then
-        self.last_jump_time = love.timer.getTime()
         self.body:applyLinearImpulse(0, -self.jump_impulse)
         self.double_jumped = true
-        local o = Smoke()
-        return actor.send(o.id, 'set_pos', {
+        return actor.send(Smoke().id, 'set_pos', {
           self.x,
           self.y
         })
       end
     end,
-    step = function(self, msg, sender)
-      if self.touching_ground then
-        self.double_jumped = false
-      end
+    touch_ground = function(self, msg, sender)
+      self.double_jumped = false
     end
   }
   _base_0.__index = _base_0
