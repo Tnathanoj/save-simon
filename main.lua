@@ -570,7 +570,7 @@ end
 do
   local _base_0 = {
     contact = function(self, msg, sender)
-      if not self.stomped and 0.7 < msg.normal[2] then
+      if not self.stomped and 0.7 < msg.normal[2] and self.faction ~= msg.other_faction then
         self.stomped = true
         return actor.send(self.id, 'dmg', {
           pts = 30
@@ -2005,14 +2005,14 @@ do
       if self.touching_ground then
         return actor.send(self.id, 'move_right', self.walk_speed)
       else
-        return actor.send(self.id, 'move_right', self.walk_speed * 0.2)
+        return actor.send(self.id, 'move_right', self.walk_speed * 0.8)
       end
     end,
     cmd_left = function(self, msg, sender)
       if self.touching_ground then
         return actor.send(self.id, 'move_left', self.walk_speed)
       else
-        return actor.send(self.id, 'move_left', self.walk_speed * 0.2)
+        return actor.send(self.id, 'move_left', self.walk_speed * 0.8)
       end
     end
   }

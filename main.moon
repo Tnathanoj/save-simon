@@ -295,7 +295,7 @@ class Stompable
         @stomped = false
 
     contact: (msg, sender) =>
-        if not @stomped and 0.7 < msg.normal[2]
+        if not @stomped and 0.7 < msg.normal[2] and @faction != msg.other_faction
             @stomped = true
             actor.send @id, 'dmg', {pts: 30}
 
@@ -842,14 +842,14 @@ class Controlled
             actor.send @id, 'move_right', @walk_speed
         else
             -- Air control
-            actor.send @id, 'move_right', @walk_speed * 0.2
+            actor.send @id, 'move_right', @walk_speed * 0.8
 
     cmd_left: (msg, sender) =>
         if @touching_ground
             actor.send @id, 'move_left', @walk_speed
         else
             -- Air control
-            actor.send @id, 'move_left', @walk_speed * 0.2
+            actor.send @id, 'move_left', @walk_speed * 0.8
 
 
 class Doorable
