@@ -140,7 +140,7 @@ class SmokeWhenDead
 
 class Gibable
     die: (msg, sender) =>
-        magnitude = 300
+        magnitude = 100
 
         o = Heart()
         actor.send o.id, 'set_pos', {@x, @y - 60}
@@ -224,17 +224,17 @@ class DropsItems
 
 class GibableBug
     die: (msg, sender) =>
-        magnitude = 500
+        magnitude = 300
 
-        for i = 1, 1
+        for i = 1, 4
             o = BugGiblet()
-            actor.send o.id, 'set_pos', {@x, @y - 60}
+            actor.send o.id, 'set_pos', {@x, @y}
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
 class GibableWithBones
     die: (msg, sender) =>
-        magnitude = 800
+        magnitude = 300
 
         o = Skull()
         actor.send o.id, 'set_pos', {@x, @y - 60}
@@ -1141,10 +1141,11 @@ class Bloody
         if not @bloodimg
             @bloodimg = love.graphics.newImage "assets/gfx/blood_puffy.png"
         @blood = love.graphics.newParticleSystem(@bloodimg, 100)
-        @blood\setParticleLifetime(1, 2) -- Particles live at least 2s and at most 5s.
-        @blood\setEmissionRate(5)
+        @blood\setParticleLifetime(1, 2)
+        @blood\setEmissionRate(20)
         @blood\setSizeVariation(1)
-        @blood\setLinearAcceleration(-100, 60, 100, 60)
+        @blood\setSizes(0.5, 2)
+        @blood\setLinearAcceleration(-100, 600, 100, 600)
         @blood\setRotation(-4, 4)
         @blood\setColors(255, 255, 255, 255, 255, 255, 255, 0) -- Fade to transparency.
 
@@ -1570,7 +1571,7 @@ class Roach extends Object
         --@\_mixin PlayerBBoxed
         @\_mixin BBoxed
         @\_mixin BBoxSprite
-        --@\_mixin GibableBug
+        @\_mixin GibableBug
         @\_mixin Bleeds
         @\_mixin Controlled
 

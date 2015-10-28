@@ -208,7 +208,7 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
-      local magnitude = 300
+      local magnitude = 100
       local o = Heart()
       actor.send(o.id, 'set_pos', {
         self.x,
@@ -412,12 +412,12 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
-      local magnitude = 500
-      for i = 1, 1 do
+      local magnitude = 300
+      for i = 1, 4 do
         local o = BugGiblet()
         actor.send(o.id, 'set_pos', {
           self.x,
-          self.y - 60
+          self.y
         })
         actor.send(o.id, 'set_vel', random_direction(magnitude))
       end
@@ -442,7 +442,7 @@ end
 do
   local _base_0 = {
     die = function(self, msg, sender)
-      local magnitude = 800
+      local magnitude = 300
       local o = Skull()
       actor.send(o.id, 'set_pos', {
         self.x,
@@ -2550,9 +2550,10 @@ do
       end
       self.blood = love.graphics.newParticleSystem(self.bloodimg, 100)
       self.blood:setParticleLifetime(1, 2)
-      self.blood:setEmissionRate(5)
+      self.blood:setEmissionRate(20)
       self.blood:setSizeVariation(1)
-      self.blood:setLinearAcceleration(-100, 60, 100, 60)
+      self.blood:setSizes(0.5, 2)
+      self.blood:setLinearAcceleration(-100, 600, 100, 600)
       self.blood:setRotation(-4, 4)
       return self.blood:setColors(255, 255, 255, 255, 255, 255, 255, 0)
     end,
@@ -3698,6 +3699,7 @@ do
       self:_mixin(PlayerFollower)
       self:_mixin(BBoxed)
       self:_mixin(BBoxSprite)
+      self:_mixin(GibableBug)
       self:_mixin(Bleeds)
       self:_mixin(Controlled)
       self:_mixin(Stompable)
