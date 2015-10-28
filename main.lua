@@ -4040,7 +4040,7 @@ do
         velx = -1
       end
       actor.send(v.id, 'set_vel', {
-        velx * 3000,
+        velx * 5000,
         -3000
       })
       return actor.send(self.id, 'remove')
@@ -4374,7 +4374,7 @@ love.mousereleased = function(x, y, button)
       x,
       y
     })
-    local o = Block()
+    local o = Goldbar()
     return actor.send(o.id, 'set_pos', {
       x,
       y

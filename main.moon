@@ -1695,7 +1695,7 @@ class Vendingmachine extends Object
         velx = 1
         if math.random() < 0.5
             velx = -1
-        actor.send v.id, 'set_vel', {velx * 3000, -3000}
+        actor.send v.id, 'set_vel', {velx * 5000, -3000}
         actor.send @id, 'remove'
 
 
@@ -1764,7 +1764,7 @@ love.mousereleased = (x, y, button) ->
         player\_start!
         actor.send player.id, 'click', {x, y}
 
-        o = Block()
+        o = Goldbar()
         actor.send o.id, 'set_pos', {x, y}
 
 
