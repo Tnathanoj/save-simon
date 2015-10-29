@@ -966,8 +966,8 @@ class BBoxed
     remove: (msg, sender) =>
         @body\destroy!
 
---    draw: (dt, sender) =>
---        love.graphics.circle("fill", @x, @y, @bbox_radius)
+   draw: (dt, sender) =>
+       love.graphics.circle("fill", @x, @y, @bbox_radius)
 
 
 class BBoxedQuad extends BBoxed
@@ -1073,13 +1073,11 @@ class Player extends Object
         --@\_mixin BBoxed
         @\_mixin TouchingGroundChecker
         @\_mixin Jumper
-        @\_mixin DoubleJumper
         @\_mixin Activator
         @\_mixin Bleeds
         @\_mixin RunSmokey
         --@\_mixin Smokey
         @\_mixin Controlled
-        @\_mixin Thrower
         @\_mixin Levelwarper
         --@\_mixin MouseFollower
         --@\_mixin FacesDirection
@@ -1381,6 +1379,13 @@ class Watermelon extends Gib
             actor.send o.id, 'set_vel', random_direction(magnitude)
 
 
+-- class GrantMixinWhenTouchesGround
+--     needs = {'TouchingGroundChecker'}
+--
+--     touch_ground: (msg, sender) =>
+--         print "touchground"
+--         actor.send @id, "mixin", @touch_ground_mixin
+
 
 class Heart extends Gib
     mixins: =>
@@ -1614,6 +1619,46 @@ class Imp extends Object
         @faction = 'bad'
 
 
+class Item extends Object
+    mixins: =>
+        @\_mixin ContactableInTime
+        @\_mixin RoomOccupier
+        @\_mixin Pickupable
+        @\_mixin Hpbonus
+        @\_mixin BBoxSprite
+
+
+class ItemGrantsMixin extends Item
+    mixins: =>
+        @\_mixin MixinWhenActivated
+        super!
+
+
+class Kunaibox extends ItemGrantsMixin
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/kunaibox.png"
+        @activate_mixin = "Thrower"
+        super!
+
+
+class MixinWhenActivated
+    activate: (msg, sender) =>
+        actor.send msg.activator_id, "mixin", @activate_mixin
+
+
+class Goldbar extends Item
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/goldbar.png"
+        super!
+
+
+class Doublejumppotion extends ItemGrantsMixin
+    mixins: =>
+        @sprite = love.graphics.newImage "assets/gfx/doublejumppotion.png"
+        @activate_mixin = "DoubleJumper"
+        super!
+
+
 class Antidoteflask extends Object
     mixins: =>
         @\_mixin RoomOccupier
@@ -1624,49 +1669,14 @@ class Antidoteflask extends Object
         @sprite = love.graphics.newImage "assets/gfx/cure.png"
 
 
-class Poisonflask extends Object
+class Poisonflask extends ItemGrantsMixin
     mixins: =>
         @sprite = love.graphics.newImage "assets/gfx/poison.png"
-        @\_mixin RoomOccupier
-        @\_mixin BBoxSprite
-        @\_mixin Touchable
-        @\_mixin Poison
-        @\_mixin Pickupable
         @\_mixin Damageable
         @\_mixin SmokeWhenDead
-
+        @activate_mixin = "Poisoned"
         @hp = 1
-
---        @\add_handler "dmg", VendingmachinePhysical.dmg
-
---    dmg: (msg, sender) =>
---        actor.send @id, 'set_vel', {velx * 5000, -3000}
-
-
-class Item extends Object
-    mixins: =>
-        @\_mixin ContactableInTime
-        @\_mixin RoomOccupier
-        @\_mixin Pickupable
-        @\_mixin Hpbonus
-        @\_mixin BBoxSprite
-
-
-class Goldbar extends Item
-    mixins: =>
-        @sprite = love.graphics.newImage "assets/gfx/goldbar.png"
         super!
-
-
-class DoubleJumpPotion extends Item
-    mixins: =>
-        @sprite = love.graphics.newImage "assets/gfx/poison.png"
-        super!
-
-        @\add_handler "init", DoubleJumpPotion.contact
-
-    contact: (msg, sender) =>
-        actor.send msg, "mixin", "DoubleJumper"
 
 
 class Turkey extends Item
@@ -1841,6 +1851,9 @@ love.load = ->
     c = Antidoteflask()
     --m = Monster()
     t = Turkey()
+    
+    actor.send Kunaibox().id, 'set_pos', {700, 300}
+    actor.send Doublejumppotion().id, 'set_pos', {900, 200}
     --i = Imp()
 
     actor.send player.id, 'set_pos', {400, 100}

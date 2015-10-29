@@ -2419,12 +2419,10 @@ do
       self:_mixin(GibableWithBones)
       self:_mixin(TouchingGroundChecker)
       self:_mixin(Jumper)
-      self:_mixin(DoubleJumper)
       self:_mixin(Activator)
       self:_mixin(Bleeds)
       self:_mixin(RunSmokey)
       self:_mixin(Controlled)
-      self:_mixin(Thrower)
       self:_mixin(Levelwarper)
       self.anims['walking'] = anim("assets/gfx/manwalking.png", 80, 103, .175, 1, 0)
       self.anims["walking"]:setMode('once')
@@ -3796,93 +3794,6 @@ do
   local _parent_0 = Object
   local _base_0 = {
     mixins = function(self)
-      self:_mixin(RoomOccupier)
-      self:_mixin(Sprite)
-      self:_mixin(Touchable)
-      self:_mixin(Cure)
-      self:_mixin(Pickupable)
-      self.sprite = love.graphics.newImage("assets/gfx/cure.png")
-    end
-  }
-  _base_0.__index = _base_0
-  setmetatable(_base_0, _parent_0.__base)
-  local _class_0 = setmetatable({
-    __init = function(self, ...)
-      return _parent_0.__init(self, ...)
-    end,
-    __base = _base_0,
-    __name = "Antidoteflask",
-    __parent = _parent_0
-  }, {
-    __index = function(cls, name)
-      local val = rawget(_base_0, name)
-      if val == nil then
-        return _parent_0[name]
-      else
-        return val
-      end
-    end,
-    __call = function(cls, ...)
-      local _self_0 = setmetatable({}, _base_0)
-      cls.__init(_self_0, ...)
-      return _self_0
-    end
-  })
-  _base_0.__class = _class_0
-  if _parent_0.__inherited then
-    _parent_0.__inherited(_parent_0, _class_0)
-  end
-  Antidoteflask = _class_0
-end
-do
-  local _parent_0 = Object
-  local _base_0 = {
-    mixins = function(self)
-      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
-      self:_mixin(RoomOccupier)
-      self:_mixin(BBoxSprite)
-      self:_mixin(Touchable)
-      self:_mixin(Poison)
-      self:_mixin(Pickupable)
-      self:_mixin(Damageable)
-      self:_mixin(SmokeWhenDead)
-      self.hp = 1
-    end
-  }
-  _base_0.__index = _base_0
-  setmetatable(_base_0, _parent_0.__base)
-  local _class_0 = setmetatable({
-    __init = function(self, ...)
-      return _parent_0.__init(self, ...)
-    end,
-    __base = _base_0,
-    __name = "Poisonflask",
-    __parent = _parent_0
-  }, {
-    __index = function(cls, name)
-      local val = rawget(_base_0, name)
-      if val == nil then
-        return _parent_0[name]
-      else
-        return val
-      end
-    end,
-    __call = function(cls, ...)
-      local _self_0 = setmetatable({}, _base_0)
-      cls.__init(_self_0, ...)
-      return _self_0
-    end
-  })
-  _base_0.__class = _class_0
-  if _parent_0.__inherited then
-    _parent_0.__inherited(_parent_0, _class_0)
-  end
-  Poisonflask = _class_0
-end
-do
-  local _parent_0 = Object
-  local _base_0 = {
-    mixins = function(self)
       self:_mixin(ContactableInTime)
       self:_mixin(RoomOccupier)
       self:_mixin(Pickupable)
@@ -3924,6 +3835,105 @@ do
   local _parent_0 = Item
   local _base_0 = {
     mixins = function(self)
+      self:_mixin(MixinWhenActivated)
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "ItemGrantsMixin",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  ItemGrantsMixin = _class_0
+end
+do
+  local _parent_0 = ItemGrantsMixin
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/kunaibox.png")
+      self.activate_mixin = "Thrower"
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Kunaibox",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Kunaibox = _class_0
+end
+do
+  local _base_0 = {
+    activate = function(self, msg, sender)
+      return actor.send(msg.activator_id, "mixin", self.activate_mixin)
+    end
+  }
+  _base_0.__index = _base_0
+  local _class_0 = setmetatable({
+    __init = function() end,
+    __base = _base_0,
+    __name = "MixinWhenActivated"
+  }, {
+    __index = _base_0,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  MixinWhenActivated = _class_0
+end
+do
+  local _parent_0 = Item
+  local _base_0 = {
+    mixins = function(self)
       self.sprite = love.graphics.newImage("assets/gfx/goldbar.png")
       return _parent_0.mixins(self)
     end
@@ -3959,15 +3969,12 @@ do
   Goldbar = _class_0
 end
 do
-  local _parent_0 = Item
+  local _parent_0 = ItemGrantsMixin
   local _base_0 = {
     mixins = function(self)
-      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
-      _parent_0.mixins(self)
-      return self:add_handler("init", DoubleJumpPotion.contact)
-    end,
-    contact = function(self, msg, sender)
-      return actor.send(msg, "mixin", "DoubleJumper")
+      self.sprite = love.graphics.newImage("assets/gfx/doublejumppotion.png")
+      self.activate_mixin = "DoubleJumper"
+      return _parent_0.mixins(self)
     end
   }
   _base_0.__index = _base_0
@@ -3977,7 +3984,7 @@ do
       return _parent_0.__init(self, ...)
     end,
     __base = _base_0,
-    __name = "DoubleJumpPotion",
+    __name = "Doublejumppotion",
     __parent = _parent_0
   }, {
     __index = function(cls, name)
@@ -3998,7 +4005,91 @@ do
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
-  DoubleJumpPotion = _class_0
+  Doublejumppotion = _class_0
+end
+do
+  local _parent_0 = Object
+  local _base_0 = {
+    mixins = function(self)
+      self:_mixin(RoomOccupier)
+      self:_mixin(Sprite)
+      self:_mixin(Touchable)
+      self:_mixin(Cure)
+      self:_mixin(Pickupable)
+      self.sprite = love.graphics.newImage("assets/gfx/cure.png")
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Antidoteflask",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Antidoteflask = _class_0
+end
+do
+  local _parent_0 = ItemGrantsMixin
+  local _base_0 = {
+    mixins = function(self)
+      self.sprite = love.graphics.newImage("assets/gfx/poison.png")
+      self:_mixin(Damageable)
+      self:_mixin(SmokeWhenDead)
+      self.activate_mixin = "Poisoned"
+      self.hp = 1
+      return _parent_0.mixins(self)
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  local _class_0 = setmetatable({
+    __init = function(self, ...)
+      return _parent_0.__init(self, ...)
+    end,
+    __base = _base_0,
+    __name = "Poisonflask",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        return _parent_0[name]
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  Poisonflask = _class_0
 end
 do
   local _parent_0 = Item
@@ -4500,6 +4591,14 @@ love.load = function()
   local g = Poisonflask()
   local c = Antidoteflask()
   local t = Turkey()
+  actor.send(Kunaibox().id, 'set_pos', {
+    700,
+    300
+  })
+  actor.send(Doublejumppotion().id, 'set_pos', {
+    900,
+    200
+  })
   actor.send(player.id, 'set_pos', {
     400,
     100
